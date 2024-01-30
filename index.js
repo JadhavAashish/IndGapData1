@@ -1,36 +1,4 @@
-  /* const express = require ('express');
-  const bodyParcer = require ('body-parser');
-  const cors = require ('cors');
-  const sql = require ('mssql/msnodesqlv8');
-
-  const app = express();
-  app.use(bodyParcer.json());
-  app.use(cors());
-
-
-  const config = {
-    driver: 'msnodesqlv8',
-    connectionString: 'Driver={SQL Server};Server=AYJLAPTOP\\SQLEXPRESS;Database=GapData1;Trusted_Connection=yes;',
-      options: {
-      trustedConnection: true, 
-    },
-  };
-
-  sql.connect(config , (err)=>{
-      if(err){
-          console.log('Error:',err);
-      }else{
-          console.log('connected')
-      }
-  });
-
-  // Start the server
-  const PORT = process.env.PORT || 8090;
-  app.listen(PORT, () => {
-    console.log(`Server is running on PORT ${PORT}`);
-  });
-  */
-
+  
   const express = require('express');
   const bodyParser = require('body-parser');
   const cors = require('cors');
@@ -322,7 +290,7 @@ app.use('/img', express.static('C:/Users/91942/Pictures/photopath'));
       EmpName,
       City,
       MobileNo,
-      USERID,
+      UserID,
     } = req.body;
   
     const query = `
@@ -331,14 +299,14 @@ app.use('/img', express.static('C:/Users/91942/Pictures/photopath'));
       EmpName,
       City,
       MobileNo,
-      USERID
+      UserID
     )
     VALUES (
       ${EmpCode},
       N'${EmpName}',
       N'${City}',
       '${MobileNo}',
-      '${USERID}'
+      ${UserID}
     );
   `;
   
@@ -370,7 +338,7 @@ app.use('/img', express.static('C:/Users/91942/Pictures/photopath'));
       EmpName,
       City,
       MobileNo,
-      USERID
+      UserID
     } = req.body;
   
     const query = `
@@ -379,7 +347,7 @@ app.use('/img', express.static('C:/Users/91942/Pictures/photopath'));
         EmpName = N'${EmpName}',
         City = N'${City}',
         MobileNo = '${MobileNo}',
-        USERID = ${USERID}
+        UserID = ${UserID}
       WHERE
         EmpCode = ${EmpCode};
     `;
@@ -742,12 +710,11 @@ app.put('/api/grade/:GradeCode', async (req, res) => {
       DesigCode,
       Designation,
       DesignationEng,
-      UserID
     } = req.body;
 
     const query = `
-      INSERT INTO DesignationMaster (DesigCode, Designation, DesignationEng,UserID)
-      VALUES ('${DesigCode}', N'${Designation}', N'${DesignationEng}',${UserID});
+      INSERT INTO DesignationMaster (DesigCode, Designation, DesignationEng)
+      VALUES ('${DesigCode}', N'${Designation}', N'${DesignationEng}');
     `;
 
     sql.query(query, (err) => {
@@ -765,12 +732,11 @@ app.put('/api/grade/:GradeCode', async (req, res) => {
     const {
       Designation,
       DesignationEng,
-      UserID
     } = req.body;
 
     const query = `
       UPDATE DesignationMaster
-      SET Designation=N'${Designation}', DesignationEng=N'${DesignationEng}',UserID=${UserID}
+      SET Designation=N'${Designation}', DesignationEng=N'${DesignationEng}'
       WHERE DesigCode='${desigCode}';
     `;
 
@@ -992,8 +958,8 @@ app.put('/api/grade/:GradeCode', async (req, res) => {
     });
   });
 
-  app.put('/api/itemcategories/:itemCategoryId', (req, res) => {
-    const { itemCategoryId } = req.params;
+  app.put('/api/itemcategories/:itemCategoryCode', (req, res) => {
+    const { itemCategoryCode } = req.params;
     const {
       ItemCategoryName,
       ItemCategoryNameEng,
@@ -1003,7 +969,7 @@ app.put('/api/grade/:GradeCode', async (req, res) => {
     const query = `
       UPDATE ItemCategoryMaster
       SET ItemCategoryName=N'${ItemCategoryName}', ItemCategoryNameEng=N'${ItemCategoryNameEng}', ItemSubGroupCode='${ItemSubGroupCode}',UserID=${UserID}
-      WHERE ItemCategoryCode='${itemCategoryId}';
+      WHERE ItemCategoryCode='${itemCategoryCode}';
     `;
     sql.query(query, (err, result) => {
       if (err) {
@@ -1013,11 +979,11 @@ app.put('/api/grade/:GradeCode', async (req, res) => {
         if (result.rowsAffected && result.rowsAffected[0] > 0) {
           res.json({
             message: 'Item category updated successfully',
-            ItemCategoryCode: itemCategoryId,
+            ItemCategoryCode: itemCategoryCode,
             ItemCategoryName,
             ItemCategoryNameEng,
             ItemSubGroupCode,
-            USERID
+            UserID
           });
         } else {
           res.status(404).json({ error: 'Record not found' });
@@ -1026,9 +992,9 @@ app.put('/api/grade/:GradeCode', async (req, res) => {
     });
   });
 
-  app.delete('/api/itemcategories/:itemCategoryId', (req, res) => {
-    const { itemCategoryId } = req.params;
-    const query = `DELETE FROM ItemCategoryMaster WHERE ItemCategoryCode='${itemCategoryId}'`;
+  app.delete('/api/itemcategories/:itemCategoryCode', (req, res) => {
+    const { itemCategoryCode } = req.params;
+    const query = `DELETE FROM ItemCategoryMaster WHERE ItemCategoryCode='${itemCategoryCode}'`;
     sql.query(query, (err) => {
       if (err) {
         console.log('Error:', err);
@@ -1074,7 +1040,7 @@ app.put('/api/grade/:GradeCode', async (req, res) => {
       const query = `
         UPDATE ItemGroupMaster 
         SET ItemGroupName=N'${ItemGroupName}', ItemGroupNameEnglish=N'${ItemGroupNameEnglish}', 
-        Remark1=N'${Remark1}', Remark2=N'${Remark2}', USERID=${USERID}
+        Remark1=N'${Remark1}', Remark2=N'${Remark2}', USERID='${USERID}'
         WHERE ItemGroupCode=${ItemGroupCode};
       `;
       sql.query(query, (err, result) => {
@@ -1089,7 +1055,7 @@ app.put('/api/grade/:GradeCode', async (req, res) => {
               ItemGroupNameEnglish,
               Remark1,
               Remark2,
-              UserId,
+              USERID,
             });
           } else {
             res.status(404).json({ error: 'Record not found' });
@@ -1181,8 +1147,113 @@ app.put('/api/grade/:GradeCode', async (req, res) => {
   });
   });
     
-  app.put('/api/items-master/:ItCode,', (req, res) => {
-  const {  ItCode } = req.params;
+ app.put('/api/items-master/:ItCode', (req, res) => {
+  const { ItCode } = req.params;
+  const {
+    ItName,
+    PartNo,
+    GradeCode,
+    SubAcCode,
+    ItemSubGroupCode,
+    ItemCategoryCode,
+    UnitCode,
+    PackingCode,
+    LocationCode,
+    HSNCODE,
+    GstRateCode,
+    BoxWeight,
+    ProdnWeight,
+    SalesWeight,
+    RRWeight,
+    BoringWeight,
+    QtyPerBox,
+    CostRate,
+    BufferStock,
+    Remark1,
+    Remark2,
+    Remark3,
+    UserID
+  } = req.body;
+  const query = `
+  UPDATE ItemMaster
+  SET
+    ItName = N'${ItName}',
+    PartNo = '${PartNo}',
+    GradeCode = '${GradeCode}',
+    SubAccode = ${SubAcCode},
+    ItemSubGroupCode = ${ItemSubGroupCode},
+    ItemCategoryCode = ${ItemCategoryCode},
+    UnitCode = ${UnitCode},
+    PackingCode = ${PackingCode},
+    LocationCode = ${LocationCode},
+    HSNCODE = '${HSNCODE}',
+    GSTRATECODE = ${GstRateCode},
+    BoxWeight = ${BoxWeight},
+    ProdnWeight = ${ProdnWeight},
+    SalesWeight = ${SalesWeight},
+    RRWeight = ${RRWeight},
+    BoringWeight = ${BoringWeight},
+    QtyPerBox = ${QtyPerBox},
+    CostRate = ${CostRate},
+    BufferStock = ${BufferStock},
+    Remark1 = N'${Remark1}',
+    Remark2 = N'${Remark2}',
+    Remark3 = N'${Remark3}',
+    UserID = '${UserID}'
+  WHERE
+    ItCode = ${ItCode};
+`;
+// Check for undefined values
+for (const key in req.body) {
+  if (req.body[key] === undefined) {
+    // Handle or log the undefined value
+    console.error(`Undefined value for ${key}`);
+    // You might want to return an error response or set a default value
+  }
+}
+  sql.query(query, (err, result) => {
+      if (err) {
+      console.log('Error:', err);
+      res.status(500).json({ error: 'Internal server error' });
+      } else {
+      if (result.rowsAffected && result.rowsAffected[0] > 0) {
+          res.json({
+          message: 'Item updated successfully',
+          ItCode: ItCode,
+          ItName,
+          PartNo,
+          GradeCode,
+          SubAcCode,
+          ItemSubGroupCode,
+          ItemCategoryCode,
+          UnitCode,
+          PackingCode,
+          LocationCode,
+          HSNCODE,
+          GstRateCode,
+          BoxWeight,
+          ProdnWeight,
+          SalesWeight,
+          RRWeight,
+          BoringWeight,
+          QtyPerBox,
+          CostRate,
+          BufferStock,
+          Remark1,
+          Remark2,
+          Remark3,
+          UserID
+          });
+      } else {
+          res.status(404).json({ error: 'Record not found' });
+      }
+      }
+  });
+  });
+   
+/*
+ app.put('/api/items-master/:ItCode', (req, res) => {
+  const { ItCode } = req.params;
   const {
     ItName,
     PartNo,
@@ -1206,7 +1277,7 @@ app.put('/api/grade/:GradeCode', async (req, res) => {
     Remark1,
     Remark2,
     Remark3,
-    USERID
+    UserID
   } = req.body;
   const query = `
   UPDATE ItemMaster
@@ -1233,9 +1304,9 @@ app.put('/api/grade/:GradeCode', async (req, res) => {
     Remark1 = N'${Remark1}',
     Remark2 = N'${Remark2}',
     Remark3 = N'${Remark3}',
-    USERID = '${USERID}'
+    UserID = '${UserID}'
   WHERE
-    ItCode = '${ItCode}' ;
+    ItCode = ${ItCode};
 `;
 
   sql.query(query, (err, result) => {
@@ -1246,30 +1317,7 @@ app.put('/api/grade/:GradeCode', async (req, res) => {
       if (result.rowsAffected && result.rowsAffected[0] > 0) {
           res.json({
           message: 'Item updated successfully',
-          ItCode,
-          ItName,
-          PartNo,
-          GradeCode,
-          SubAccode,
-          ItemSubGroupCode,
-          ItemCategoryCode,
-          UnitCode,
-          PackingCode,
-          LocationCode,
-          HSNCODE,
-          GstRateCode,
-          BoxWeight,
-          ProdnWeight,
-          SalesWeight,
-          RRWeight,
-          BoringWeight,
-          QtyPerBox,
-          CostRate,
-          BufferStock,
-          Remark1,
-          Remark2,
-          Remark3,
-          USERID,
+          ItCode: ItCode,
           });
       } else {
           res.status(404).json({ error: 'Record not found' });
@@ -1277,7 +1325,7 @@ app.put('/api/grade/:GradeCode', async (req, res) => {
       }
   });
   });
-    
+*/
   app.delete('/api/items-master/:ItCode', (req, res) => {
   const { ItCode } = req.params;
   const query = `DELETE FROM ItemMaster WHERE ItCode=${ItCode}`;
@@ -1291,10 +1339,9 @@ app.put('/api/grade/:GradeCode', async (req, res) => {
   });
   });
     
+
   //For ItemSubGroupMaster
-
-
-  app.get('/api/itemsubgroups', (req, res) => {
+  app.get('/api/itemSubGroups', (req, res) => {
     // Replace with your SQL SELECT query
     const query = 'SELECT * FROM ItemSubGroupMaster';
     sql.query(query, (err, result) => {
@@ -1307,7 +1354,7 @@ app.put('/api/grade/:GradeCode', async (req, res) => {
     });
   });
 
-  app.post('/api/itemsubgroups', (req, res) => {
+  app.post('/api/itemSubGroups', (req, res) => {
     const { ItemSubGroupCode, ItemSubGroupName, ItemSubGroupNameEnglish, ItemMainGroupCode } = req.body;
     // Replace with your SQL INSERT query
     const query = `
@@ -1324,24 +1371,24 @@ app.put('/api/grade/:GradeCode', async (req, res) => {
     });
   });
 
-  app.put('/api/itemsubgroups/:ItemSubGroupCode', (req, res) => {
+  app.put('/api/itemSubGroups/:ItemSubGroupCode', (req, res) => {
     const { ItemSubGroupCode } = req.params;
     const { ItemSubGroupName, ItemSubGroupNameEnglish, ItemMainGroupCode } = req.body;
     // Replace with your SQL UPDATE query
     const query = `
       UPDATE ItemSubGroupMaster
-      SET ItemSubGroupName=N'${ItemSubGroupName}', ItemSubGroupNameEnglish=N'${ItemSubGroupNameEnglish}', ItemMainGroupCode='${ItemMainGroupCode}'
-      WHERE ItemSubGroupCode='${ItemSubGroupCode}';
+      SET ItemSubGroupName=N'${ItemSubGroupName}', ItemSubGroupNameEnglish=N'${ItemSubGroupNameEnglish}', ItemMainGroupCode=${ItemMainGroupCode}
+      WHERE ItemSubGroupCode = ${ItemSubGroupCode};
     `;
     sql.query(query, (err, result) => {
       if (err) {
         console.error('Error:', err);
         res.status(500).json({ error: 'Internal server error' });
       } else {
-        if (result && result.affectedRows > 0) {
+        if (result.rowsAffected && result.rowsAffected[0] > 0) {
           res.json({
             message: 'ItemSubGroup updated successfully',
-            ItemSubGroupCode: itemSubGroupCode,
+            ItemSubGroupCode: ItemSubGroupCode,
             ItemSubGroupName,
             ItemSubGroupNameEnglish,
             ItemMainGroupCode,
@@ -1353,10 +1400,10 @@ app.put('/api/grade/:GradeCode', async (req, res) => {
     });
   });
 
-  app.delete('/api/itemsubgroups/:itemSubGroupCode', (req, res) => {
-    const { itemSubGroupCode } = req.params;
+  app.delete('/api/itemSubGroups/:ItemSubGroupCode', (req, res) => {
+    const { ItemSubGroupCode } = req.params;
     // Replace with your SQL DELETE query
-    const query = `DELETE FROM ItemSubGroupMaster WHERE ItemSubGroupCode='${itemSubGroupCode}'`;
+    const query = `DELETE FROM ItemSubGroupMaster WHERE ItemSubGroupCode='${ItemSubGroupCode}'`;
     sql.query(query, (err) => {
       if (err) {
         console.error('Error:', err);
@@ -1366,8 +1413,8 @@ app.put('/api/grade/:GradeCode', async (req, res) => {
       }
     });
   });
-
-
+   
+    
   // For LedgerMaster
   // Get all LedgerMaster entries
   app.get('/api/ledger-master', (req, res) => {
@@ -3664,109 +3711,78 @@ app.delete('/api/product/:ProductCode', (req, res) => {
 });
 
 
-
-// for HamaliTypemaster 
-// Get all HamaliTypemaster
-app.get('/api/hamaliType', (req, res) => {
-  const query = 'SELECT * FROM HamaliTypeMaster';
-  sql.query(query, (err, result) => {
-    if (err) {
-      console.log('Error:', err);
-      res.status(500).json({ error: 'Internal server error' });
-    } else {
-      res.json(result.recordset);
-    }
-  });
-});
-
-// Create a new HamaliType
-app.post('/api/hamaliType', (req, res) => {
-  const { 
-    HamaliTypeCode,
-    HamaliType,
-    HamaliTypeEng,
-    UserID, 
-    } = req.body;
-  const query = `
-    INSERT INTO HamaliTypeMaster (HamaliTypeCode, HamaliType, HamaliTypeEng, UserID)
-    VALUES (${HamaliTypeCode}, N'${HamaliType}', N'${HamaliTypeEng}', ${UserID});
-  `;
-  sql.query(query, (err) => {
-    if (err) {
-      console.log('Error:', err);
-      res.status(500).json({ error: 'Internal server error' });
-    } else {
-      res.json({ message: 'HamaliType created successfully' });
-    }
-  });
-});
-
-// Update a state by HamaliType
-app.put('/api/hamaliType/:HamaliTypeCode', (req, res) => {
-  const { HamaliTypeCode } = req.params;
-  const { 
-    HamaliType,
-    HamaliTypeEng,
-    UserID, 
-    } = req.body;
-    const query = `
-  UPDATE HamaliTypeMaster 
-  SET 
-    HamaliType = N'${HamaliType}', 
-    HamaliTypeEng = N'${HamaliTypeEng}', 
-    UserID = '${UserID}'
-  WHERE 
-    HamaliTypeCode = ${HamaliTypeCode};
-`;
-
-const params = {
-  UserID: UserID,
-  HamaliTypeCode: HamaliTypeCode
-};
-
-sql.query(query, params, (err, result) => {
-    if (err) {
-      console.log('Error:', err);
-      res.status(500).json({ error: 'Internal server error' });
-    } else {
-      if (result.rowsAffected && result.rowsAffected[0] > 0) {
-        res.json({
-          message: 'HamaliType updated successfully',
-          HamaliTypeCode: HamaliTypeCode,
-          HamaliType,
-          HamaliTypeEng,
-          UserID,
-        });
+  // For NatureMaster------------------------------------------------------------------------------------
+  // GET all Nature
+  app.get('/api/nature', (req, res) => {
+    const query = 'SELECT * FROM NatureMaster';
+    sql.query(query, (err, result) => {
+      if (err) {
+        console.log('Error:', err);
+        res.status(500).json({ error: 'Internal server error' });
       } else {
-        res.status(404).json({ error: 'Record not found' });
+        res.json(result.recordset);
       }
-    }
+    });
   });
-});
-
-// Delete a state by HamaliType
-app.delete('/api/hamaliType/:HamaliTypeCode', (req, res) => {
-  const { HamaliTypeCode } = req.params;
-  const query = `DELETE FROM HamaliTypeMaster WHERE HamaliTypeCode=${HamaliTypeCode}`;
-  sql.query(query, (err) => {
-    if (err) {
-      console.log('Error:', err);
-      res.status(500).json({ error: 'Internal server error' });
-    } else {
-      res.json({ message: 'HamaliType deleted successfully' });
-    }
+  
+  // POST a new nature
+  app.post('/api/nature', (req, res) => {
+    const { NatureCode, NatureName, UserID } = req.body;
+    const query = `
+      INSERT INTO NatureMaster (NatureCode, NatureName, UserID)
+      VALUES ('${NatureCode}', N'${NatureName}',  N'${UserID}');
+    `;
+    sql.query(query, (err) => {
+      if (err) {
+        console.log('Error:', err);
+        res.status(500).json({ error: 'Internal server error' });
+      } else {
+        res.json({ message: 'Nature created successfully' });
+      }
+    });
   });
-});
-
   
+  // PUT update an existing nature
+  app.put('/api/nature/:NatureCode', (req, res) => {
+    const { NatureCode } = req.params;
+    const { NatureName, UserID } = req.body;
+    const query = `
+      UPDATE NatureMaster
+      SET NatureName=N'${NatureName}', UserID=N'${UserID}'
+      WHERE NatureCode='${NatureCode}';
+    `;
+    sql.query(query, (err, result) => {
+      if (err) {
+        console.log('Error:', err);
+        res.status(500).json({ error: 'Internal server error' });
+      } else {
+        if (result.rowsAffected && result.rowsAffected[0] > 0) {
+          res.json({
+            message: 'Nature updated successfully',
+            NatureCode: NatureCode,
+            NatureName,
+            UserID,
+          });
+        } else {
+          res.status(404).json({ error: 'Record not found' });
+        }
+      }
+    });
+  });
   
-  
-
-
-
-
-
-
+  // DELETE a nature
+  app.delete('/api/nature/:NatureCode', (req, res) => {
+    const { NatureCode } = req.params;
+    const query = `DELETE FROM NatureMaster WHERE NatureCode='${NatureCode}'`;
+    sql.query(query, (err) => {
+      if (err) {
+        console.log('Error:', err);
+        res.status(500).json({ error: 'Internal server error' });
+      } else {
+        res.json({ message: 'Nature deleted successfully' });
+      }
+    });
+  }); 
 
 
 
