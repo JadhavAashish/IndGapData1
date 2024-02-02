@@ -4022,6 +4022,56 @@ app.post('/api/purcOrd', (req, res) => {
   });
 });
 
+// Update Purchase Order API
+app.put('/api/purcOrd/:entryNo', (req, res) => {
+  const {
+    flag,
+    trDate,
+    SubAccode,
+    PONo,
+    PODate,
+    ItCode,
+    Qty,
+    ShortQty,
+    Remark1,
+    DeptCode,
+    YearCode,
+    CompCode,
+    USERID,
+  } = req.body;
+
+  const entryNo = req.params.entryNo;
+
+  const updateQuery = `
+    UPDATE ProcessEntry
+    SET
+      Flag = '${flag}',
+      TrDate = '${trDate}',
+      SubAccode = '${SubAccode}',
+      PONo = '${PONo}',
+      PODate = '${PODate}',
+      ItCode = '${ItCode}',
+      Qty = '${Qty}',
+      ShortQty = '${ShortQty}',
+      Remark1 = N'${Remark1}',
+      DeptCode = '${DeptCode}',
+      YearCode = '${YearCode}',
+      CompCode = '${CompCode}',
+      USERID = '${USERID}'
+    WHERE EntryNo = '${entryNo}';
+  `;
+
+  sql.query(updateQuery, (err) => {
+    if (err) {
+      console.log('Error:', err);
+      res.status(500).json({ error: 'Internal server error' });
+    } else {
+      res.json({ message: 'Purchase Order updated successfully' });
+    }
+  });
+});
+
+
 // DELETE endpoint to delete a POMaster
 app.delete('/api/purcOrd/:EntryNo/:Flag', (req, res) => {
   const { EntryNo, Flag } = req.params;
