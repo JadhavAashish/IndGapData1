@@ -1,4 +1,4 @@
-  const express = require('express');
+ const express = require('express');
   const bodyParser = require('body-parser');
   const cors = require('cors');
   const sql = require('mssql');
@@ -3868,7 +3868,6 @@ app.delete('/api/product/:ProductCode', (req, res) => {
 
 
   // For DigitMaster master
-
   // GET endpoint to fetch all DigitMaster
   app.get('/api/digit', (req, res) => {
     const query = 'SELECT * FROM Digits';
@@ -3940,13 +3939,158 @@ app.delete('/api/product/:ProductCode', (req, res) => {
   });
 
 
-//For Purchase Order
+// For ProcessMaster master
+  // GET endpoint to fetch all ProcessMaster
+  app.get('/api/process', (req, res) => {
+    const query = 'SELECT * FROM ProcessMaster';
+    sql.query(query, (err, result) => {
+      if (err) {
+        console.log('Error:', err);
+        res.status(500).json({ error: 'Internal server error' });
+      } else {
+        res.json(result.recordset);
+      }
+    });
+  });
 
- // GET endpoint to fetch all Purchase Order
- app.get('/api/purcOrd/:Flag', (req, res) => {
+  // POST endpoint to create a new ProcessMaster
+  app.post('/api/process', (req, res) => {
+    const { ProcessCode, ProcessName, ProcessRate, UserID } = req.body;
+    const query = `
+      INSERT INTO ProcessMaster (ProcessCode, ProcessName, ProcessRate, UserID)
+      VALUES ('${ProcessCode}', N'${ProcessName}', '${ProcessRate}','${UserID}');
+    `;
+    sql.query(query, (err) => {
+      if (err) {
+        console.log('Error:', err);
+        res.status(500).json({ error: 'Internal server error' });
+      } else {
+        res.json({ message: 'Process created successfully' });
+      }
+    });
+  });
+
+  // PUT endpoint to update a ProcessMaster
+  app.put('/api/process/:ProcessCode', (req, res) => {
+    const { ProcessCode } = req.params;
+    const { ProcessName, ProcessRate } = req.body;
+    const query = `
+      UPDATE ProcessMaster
+      SET ProcessName=N'${ProcessName}', ProcessRate='${ProcessRate}' WHERE ProcessCode='${ProcessCode}';
+    `;
+    sql.query(query, (err, result) => {
+      if (err) {
+        console.log('Error:', err);
+        res.status(500).json({ error: 'Internal server error' });
+      } else {
+        if (result.rowsAffected && result.rowsAffected[0] > 0) {
+          res.json({
+            message: 'Process updated successfully',
+            ProcessCode: ProcessCode,
+            ProcessName,
+            ProcessRate
+          });
+        } else {
+          res.status(404).json({ error: 'Record not found' });
+        }
+      }
+    });
+  });
+
+  // DELETE endpoint to delete a ProcessMaster
+  app.delete('/api/process/:ProcessCode', (req, res) => {
+    const { ProcessCode } = req.params;
+    const query = `DELETE FROM ProcessMaster WHERE ProcessCode='${ProcessCode}'`;
+    sql.query(query, (err) => {
+      if (err) {  
+        console.log('Error:', err);
+        res.status(500).json({ error: 'Internal server error' });
+      } else {
+        res.json({ message: 'Process deleted successfully' });
+      }
+    });
+  });
+
+
+// For RejectionMaster
+  // GET endpoint to fetch all RejectionMaster
+  app.get('/api/rejection', (req, res) => {
+    const query = 'SELECT * FROM RejectionMaster';
+    sql.query(query, (err, result) => {
+      if (err) {
+        console.log('Error:', err);
+        res.status(500).json({ error: 'Internal server error' });
+      } else {
+        res.json(result.recordset);
+      }
+    });
+  });
+
+  // POST endpoint to create a new RejectionMaster
+  app.post('/api/rejection', (req, res) => {
+    const { RejCode, RejName, RejforBilling, UserID } = req.body;
+    const query = `
+      INSERT INTO RejectionMaster (RejCode, RejName, RejforBilling, UserID)
+      VALUES ('${RejCode}', N'${RejName}', '${RejforBilling}','${UserID}');
+    `;
+    sql.query(query, (err) => {
+      if (err) {
+        console.log('Error:', err);
+        res.status(500).json({ error: 'Internal server error' });
+      } else {
+        res.json({ message: 'Rejection created successfully' });
+      }
+    });
+  });
+
+  // PUT endpoint to update a RejectionMaster
+  app.put('/api/rejection/:RejCode', (req, res) => {
+    const { RejCode } = req.params;
+    const { RejName, RejforBilling } = req.body;
+    const query = `
+      UPDATE RejectionMaster
+      SET RejName=N'${RejName}', RejforBilling='${RejforBilling}' WHERE RejCode='${RejCode}';
+    `;
+    sql.query(query, (err, result) => {
+      if (err) {
+        console.log('Error:', err);
+        res.status(500).json({ error: 'Internal server error' });
+      } else {
+        if (result.rowsAffected && result.rowsAffected[0] > 0) {
+          res.json({
+            message: 'Rejection updated successfully',
+            ProcessCode: ProcessCode,
+            ProcessName,
+            ProcessRate
+          });
+        } else {
+          res.status(404).json({ error: 'Record not found' });
+        }
+      }
+    });
+  });
+
+  // DELETE endpoint to delete a RejectionMaster
+  app.delete('/api/rejection/:RejCode', (req, res) => {
+    const { RejCode } = req.params;
+    const query = `DELETE FROM RejectionMaster WHERE RejCode='${RejCode}'`;
+    sql.query(query, (err) => {
+      if (err) {  
+        console.log('Error:', err);
+        res.status(500).json({ error: 'Internal server error' });
+      } else {
+        res.json({ message: 'Process deleted successfully' });
+      }
+    });
+  });
+
+
+//For ProcessentryTemp
+ // GET endpoint to fetch all ProcessentryTemp
+ app.get('/api/processtemp/:Flag', (req, res) => {
   const { Flag } = req.params;
 
-  const query = `SELECT * FROM ProcessEntry WHERE Flag = '${Flag}'`;
+  const query = `SELECT * FROM ProcessEntryTemp WHERE Flag = '${Flag}'`;
   sql.query(query, (err, result) => {
     if (err) {
       console.log('Error:', err);
@@ -3958,37 +4102,149 @@ app.delete('/api/product/:ProductCode', (req, res) => {
 });
 
 
-// POST  new Purchase Order
-app.post('/api/purcOrd', (req, res) => {
+app.get('/api/distinctprocess/:flag/:dept/:year/:company', (req, res) => {
+    const flag = req.params.flag;
+    const dept = req.params.dept;
+    const year = req.params.year;
+    const company = req.params.company;
+    // Validate inputs and handle potential security concerns
+        /* const query = `
+        SELECT DISTINCT EntryNo, Flag, CompCode
+        FROM ProcessEntry
+        WHERE Flag = @flag
+          AND DeptCode = @dept
+          AND YearCode = @year
+          AND CompCode = @company;
+        `; */
+
+      const query = `
+        SELECT 
+            EntryNo,
+            MAX(TrDate) AS TrDate, -- Assuming you want the maximum TrDate for each distinct EntryNo and Flag
+            Flag,
+            MAX(SubAccode) AS SubAccode,
+            MAX(EmpCode) AS EmpCode,
+            MAX(PONo) AS PONo,
+            MAX(PODate) AS PODate,
+            MAX(DCNo) AS DCNo,
+            MAX(CiHeats) AS CiHeats,
+            MAX(DiHeats) AS DiHeats,
+            MAX(VehicleCode) AS VehicleCode,
+            MAX(DeptCode) AS DeptCode,
+            MAX(ItCode) AS ItCode,
+            MAX(BoxQty) AS BoxQty,
+            MAX(ShortQty) AS ShortQty,
+            MAX(ProcessCode) AS ProcessCode,
+            MAX(RejCode) AS RejCode,
+            MAX(NatureCode) AS NatureCode,
+            MAX(Weight) AS Weight,
+            MAX(LabourRate) AS LabourRate,
+            MAX(Hours) AS Hours,
+            MAX(FurnaceTonnage) AS FurnaceTonnage,
+            MAX(CHNo) AS CHNo,
+            MAX(CiRate) AS CiRate,
+            MAX(DiRate) AS DiRate,
+            MAX(BreakdownMin) AS BreakdownMin,
+            MAX(Remark2) AS Remark2,
+            MAX(Qty) AS Qty,
+            MAX(Remark1) AS Remark1,
+            MAX(YearCode) AS YearCode,
+            MAX(CompCode) AS CompCode,
+            MAX(USERID) AS USERID,
+            MAX(ComputerID) AS ComputerID
+        FROM ProcessEntry
+        WHERE Flag = @flag
+          AND DeptCode = @dept
+          AND YearCode = @year
+          AND CompCode = @company
+        GROUP BY EntryNo, Flag;
+    `;
+
+    const request = new sql.Request();
+    request.input('dept', dept);
+    request.input('flag', flag);
+    request.input('company', company);
+    request.input('year', year);
+
+    request.query(query, (err, result) => {
+      if (err) {
+        console.log('Error:', err);
+        res.status(500).json({ error: 'Internal server error' });
+      } else {
+        res.json(result.recordset);
+      }
+    });
+});
+
+//Add ProcessentryTemp
+app.post('/api/processtemp', (req, res) => {
   const {
     flag,
     entryNo,
     trDate,
     SubAccode,
+    EmpCode,
     PONo,
     PODate,
+    DCNo,
+    ChNo,
+    CIHeats,
+    DIHeats,
+    VehicleCode,
     ItCode,
-    Qty,
+    Boxes,
     ShortQty,
+    CIRate,
+    DIRate,
+    BreakdownMin,
+    Remark2,
+    NatureCode,
+    Qty,
     Remark1,
+    Weight,
+    RejCode,
+    ProcessCode,
+    LabourRate,
+    FurnaceTonnage,
+    Hours,
     DeptCode,
     YearCode,
     CompCode,
     USERID,
+    uniqueCode,
   } = req.body;
 
   const query = `
-    INSERT INTO ProcessEntry (
+    INSERT INTO ProcessEntryTemp (
       Flag,
       EntryNo,
       TrDate,
       SubAccode,
+      EmpCode,
       PONo,
       PODate,
+      DCNo,
+      CHNo,
+      CiHeats,
+      DiHeats,
+      VehicleCode,
       ItCode,
-      Qty,
+      BoxQty,
       ShortQty,
+      ProcessCode,
+      RejCode,
+      NatureCode,
+      Weight,
+      LabourRate,
+      FurnaceTonnage,
+      Hours,
+      CiRate,
+      DiRate,
+      BreakdownMin,
+      Remark2,
+      Qty,
       Remark1,
+      ComputerID,
       DeptCode,
       YearCode,
       CompCode,
@@ -3999,12 +4255,31 @@ app.post('/api/purcOrd', (req, res) => {
       '${entryNo}',
       '${trDate}',
       '${SubAccode}',
+      '${EmpCode}',
       '${PONo}',
       '${PODate}',
+      '${DCNo}',
+      '${ChNo}',
+      '${CIHeats}',
+      '${DIHeats}',
+      '${VehicleCode}',
       '${ItCode}',
-      '${Qty}',
+      '${Boxes}',
       '${ShortQty}',
+      '${ProcessCode}',
+      '${RejCode}',
+      '${NatureCode}',
+      '${Weight}',
+      '${LabourRate}',
+      '${FurnaceTonnage}',
+      '${Hours}',
+      '${CIRate}',
+      '${DIRate}',
+      '${BreakdownMin}',
+      '${Remark2}',
+      '${Qty}',
       N'${Remark1}',
+      '${uniqueCode}',
       '${DeptCode}',
       '${YearCode}',
       '${CompCode}',
@@ -4022,45 +4297,78 @@ app.post('/api/purcOrd', (req, res) => {
   });
 });
 
-// Update Purchase Order API
-app.put('/api/purcOrd/:entryNo', (req, res) => {
+
+// Update ProcessentryTemp API
+app.put('/api/processtemp/:entryNo/:flag/:uniqueCode', (req, res) => {
+  const { entryNo, uniqueCode, flag } = req.params;
   const {
-    flag,
     trDate,
     SubAccode,
     PONo,
     PODate,
+    CIHeats,
+    DIHeats,
+    CIRate,
+    DIRate,
+    VehicleCode,
+    EmpCode,
+    DCNo,
+    ChNo,
+    BreakdownMin,
+    Remark2,
+    NatureCode,
     ItCode,
     Qty,
     ShortQty,
     Remark1,
+    Boxes,
+    Weight,
+    RejCode,
+    ProcessCode,
+    LabourRate,
+    FurnaceTonnage,
+    Hours,
+    USERID,
     DeptCode,
     YearCode,
     CompCode,
-    USERID,
   } = req.body;
-
-  const entryNo = req.params.entryNo;
-
   const updateQuery = `
-    UPDATE ProcessEntry
+    UPDATE ProcessEntryTemp
     SET
-      Flag = '${flag}',
       TrDate = '${trDate}',
       SubAccode = '${SubAccode}',
+      EmpCode = '${EmpCode}',
       PONo = '${PONo}',
       PODate = '${PODate}',
+      DCNo = '${DCNo}',
+      ChNo = '${ChNo}',
+      CiHeats = '${CIHeats}',
+      DiHeats = '${DIHeats}',
+      VehicleCode = '${VehicleCode}',
       ItCode = '${ItCode}',
-      Qty = '${Qty}',
+      BoxQty = '${Boxes}',
       ShortQty = '${ShortQty}',
+      ProcessCode = '${ProcessCode}',
+      RejCode = '${RejCode}',
+      NatureCode = '${NatureCode}',
+      Weight = '${Weight}',
+      LabourRate = '${LabourRate}',
+      CiRate = '${CIRate}',
+      DiRate = '${DIRate}',
+      Hours = '${Hours}',
+      FurnaceTonnage = '${FurnaceTonnage}',
+      BreakDownMin = '${BreakdownMin}',
+      Remark2 = '${Remark2}',
+      Qty = '${Qty}',
       Remark1 = N'${Remark1}',
       DeptCode = '${DeptCode}',
       YearCode = '${YearCode}',
       CompCode = '${CompCode}',
       USERID = '${USERID}'
-    WHERE EntryNo = '${entryNo}';
+    WHERE EntryNo = '${entryNo}' AND ComputerID = '${uniqueCode}' AND Flag='${flag}';
   `;
-
+  
   sql.query(updateQuery, (err) => {
     if (err) {
       console.log('Error:', err);
@@ -4071,9 +4379,21 @@ app.put('/api/purcOrd/:entryNo', (req, res) => {
   });
 });
 
+// DELETE endpoint to delete a ProcessentryTemp
+app.delete('/api/processtemp/:EntryNo/:Flag', (req, res) => {
+  const { EntryNo, Flag } = req.params;
+  const query = `DELETE FROM ProcessEntryTemp WHERE EntryNo='${EntryNo}' AND Flag='${Flag}'`;
+  sql.query(query, (err) => {
+    if (err) {
+      console.log('Error:', err);
+      res.status(500).json({ error: 'Internal server error' });
+    } else {
+      res.json({ message: 'ProcessEntryTemp deleted successfully' });
+    }
+  });
+});
 
-// DELETE endpoint to delete a POMaster
-app.delete('/api/purcOrd/:EntryNo/:Flag', (req, res) => {
+app.delete('/api/distinctprocess/:EntryNo/:Flag', (req, res) => {
   const { EntryNo, Flag } = req.params;
   const query = `DELETE FROM ProcessEntry WHERE EntryNo='${EntryNo}' AND Flag='${Flag}'`;
   sql.query(query, (err) => {
@@ -4081,974 +4401,164 @@ app.delete('/api/purcOrd/:EntryNo/:Flag', (req, res) => {
       console.log('Error:', err);
       res.status(500).json({ error: 'Internal server error' });
     } else {
-      res.json({ message: 'PO deleted successfully' });
+      res.json({ message: 'ProcessEntry deleted successfully' });
+    }
+  });
+});
+
+//Save Entry in ProcessEntry
+app.post('/api/SaveProcessentries', async (req, res) => {
+  const { flag,DeptCode,YearCode,CompCode, entryNo,operation} = req.body; 
+  
+  // Get the latest max entry number for the given flag
+  const getMaxEntryNoQuery = `
+    SELECT MAX(CAST(EntryNo AS INT)) AS MaxEntryNo
+    FROM ProcessEntry
+    WHERE Flag = '${flag}'AND DeptCode = ${DeptCode} AND YearCode = ${YearCode} AND CompCode = ${CompCode}`;
+    
+    console.log("getMaxEntryNoQuery",getMaxEntryNoQuery);
+    const maxEntryNoResult = await sql.query(getMaxEntryNoQuery);
+    const maxEntryNo = maxEntryNoResult.recordset[0]?.MaxEntryNo || 0;
+    console.log("maxEntryNo",maxEntryNo);
+    console.log("maxEntryNo",maxEntryNo + 1);
+
+
+  // SQL query to insert data into TranEntry and delete from TranEntryTempSub
+  const query = `
+    DELETE PE
+    FROM ProcessEntry AS PE
+    WHERE PE.EntryNo = ${operation === 'update' ? entryNo : maxEntryNo + 1} AND PE.Flag = '${flag}' AND PE.DeptCode = '${DeptCode}' AND PE.YearCode = '${YearCode}'  AND PE.CompCode = '${CompCode}';
+
+
+    INSERT INTO ProcessEntry (EntryNo, TrDate, Flag, SubAccode, EmpCode, PONo, PODate, DCNo, CiHeats, DiHeats, VehicleCode, DeptCode, ItCode, BoxQty, ShortQty, ProcessCode, RejCode, NatureCode, Weight, LabourRate, Hours, FurnaceTonnage, CHNo, CiRate, DiRate, BreakdownMin, Remark2, Qty, Remark1, YearCode, CompCode, USERID, ComputerID)
+    SELECT ${operation === 'update' ? entryNo : maxEntryNo + 1},  TrDate, Flag, SubAccode, EmpCode, PONo, PODate, DCNo, CiHeats, DiHeats, VehicleCode, DeptCode, ItCode, BoxQty, ShortQty, ProcessCode, RejCode, NatureCode, Weight, LabourRate, Hours, FurnaceTonnage, CHNo, CiRate, DiRate, BreakdownMin, Remark2, Qty, Remark1, YearCode, CompCode, USERID, ComputerID FROM ProcessEntryTemp;
+
+    DELETE PET
+    FROM ProcessEntryTemp AS PET
+    WHERE PET.EntryNo = ${operation === 'update' ? entryNo : maxEntryNo + 1} AND PET.Flag = '${flag}'AND PET.DeptCode = '${DeptCode}' AND PET.YearCode = '${YearCode}'  AND PET.CompCode = '${CompCode}';
+    `;
+
+  sql.query(query, (err) => {
+    if (err) {
+      console.log('Error:', err);
+      res.status(500).json({ error: 'Internal server error' });
+    } else {
+      res.json({ message: 'Data saved and deleted successfully' });
     }
   });
 });
 
 
+app.post('/api/insertDataAndFlag', (req, res) => {
+  const entryNo = req.body.entryNo;
+  const flag = req.body.flag;
+  const DeptCode = req.body.DeptCode;
+  const YearCode = req.body.YearCode;
+  const CompCode = req.body.CompCode;
+  const query = `
+    DELETE FROM ProcessEntryTemp;
 
+    
+    INSERT INTO ProcessEntryTemp (flag, EntryNo, TrDate, SubAccode, EmpCode, PONo, PODate, DCNo, CiHeats, DiHeats, VehicleCode, DeptCode, ItCode, BoxQty, ShortQty, ProcessCode, RejCode, NatureCode, Weight, LabourRate, Hours, FurnaceTonnage, CHNo, CiRate, DiRate, BreakdownMin, Remark2, Qty, Remark1, YearCode, CompCode, USERID, ComputerID)
+    SELECT flag, EntryNo, TrDate, SubAccode, EmpCode, PONo, PODate, DCNo, CiHeats, DiHeats, VehicleCode, DeptCode, ItCode, BoxQty, ShortQty, ProcessCode, RejCode, NatureCode, Weight, LabourRate, Hours, FurnaceTonnage, CHNo, CiRate, DiRate, BreakdownMin, Remark2, Qty, Remark1, YearCode, CompCode, USERID, ComputerID
+    FROM ProcessEntry
+    WHERE EntryNo = @entryNo AND Flag = @flag AND DeptCode = @DeptCode  AND YearCode = @YearCode  AND CompCode = @CompCode;
+  `;
 
+  const request = new sql.Request();
+  request.input('entryNo', sql.Int, entryNo);
+  request.input('flag', sql.VarChar(255), flag);
+  request.input('DeptCode', sql.Int, DeptCode);
+  request.input('YearCode', sql.Int, YearCode);
+  request.input('CompCode', sql.Int, CompCode);
 
-
-
-{/*  
- // For Qualification Master------------------------------------------------------------------------------------
-
-  // GET all Qual
-  app.get('/api/qual', (req, res) => {
-    const query = 'SELECT * FROM QualificationMaster';
-    sql.query(query, (err, result) => {
-      if (err) {
-        console.log('Error:', err);
-        res.status(500).json({ error: 'Internal server error' });
-      } else {
-        res.json(result.recordset);
-      }
-    });
+  request.query(query, (err, result) => {
+    if (err) {
+      console.log('Error:', err);
+      res.status(500).json({ error: 'Internal server error' });
+    } else {
+      res.json({ message: 'Data saved successfully' });
+    }
   });
+});
 
-  // POST a new Qual
-  app.post('/api/qual', (req, res) => {
-    const { QualificationCode, QualificationName, UserID } = req.body;
+//Update ProcessEntry
+/* app.post('/api/SaveDistProcessEntries', async (req, res) => {
+  const { flag , entryNo, trDate, SubAccode, PONo, PODate, CIHeats, DIHeats, CIRate, DIRate, VehicleCode, EmpCode, DCNo, ChNo, BreakdownMin, Remark2, NatureCode, ItCode, Qty, ShortQty, Remark1, Boxes, Weight, RejCode, ProcessCode, LabourRate, FurnaceTonnage, Hours, CHNo, DeptCode, YearCode, CompCode, USERID, operation } = req.body; 
+  // Get the latest max entry number for the given flag
+  const getMaxEntryNoQuery = `
+    SELECT MAX(EntryNo) AS MaxEntryNo
+    FROM ProcessEntry
+    WHERE Flag = '${flag}'AND DeptCode = '${DeptCode}'AND YearCode = '${YearCode}' AND CompCode = '${CompCode}'`;
+  console.log("getMaxEntryNoQuery",getMaxEntryNoQuery);
+  
+  const maxEntryNoResult = await sql.query(getMaxEntryNoQuery);
+  const maxEntryNo = maxEntryNoResult.recordset[0]?.MaxEntryNo || 0;
+  console.log("maxEntryNo",maxEntryNo);
 
-    const query = `
-      INSERT INTO QualificationMaster (QualificationCode, Qualification, Userid)
-      VALUES ('${QualificationCode}', N'${QualificationName}',  N'${UserID}');
-    `;
-    sql.query(query, (err) => {
-      if (err) {
-        console.log('Error:', err);
-        res.status(500).json({ error: 'Internal server error' });
-      } else {
-        res.json({ message: 'Qualification created successfully' });
-      }
-    });
+  // SQL query to insert data into TranEntry and delete from TranEntryTempSub
+  let  query = `
+  DELETE TE
+  FROM ProcessEntry AS TE
+  WHERE TE.EntryNo = '${operation === 'update' ? entryNo : maxEntryNo + 1}' AND TE.Flag = '${flag}' AND TE.DeptCode = '${DeptCode}' AND TE.YearCode = '${YearCode}' AND TE.CompCode = '${CompCode}';
+  
+  INSERT INTO ProcessEntry (EntryNo, TrDate, Flag, SubAccode, EmpCode, PONo, PODate, DCNo, CiHeats, DiHeats, VehicleCode,  ItCode, BoxQty, ShortQty, ProcessCode, RejCode, NatureCode, Weight, LabourRate, Hours, FurnaceTonnage, CHNo, CiRate, DiRate, BreakDownMin, Remark2, Qty, Remark1, DeptCode, YearCode, CompCode, USERID, ComputerID)
+  SELECT ${operation === 'update' ? entryNo : maxEntryNo + 1}, TrDate, Flag, SubAccode, EmpCode, PONo, PODate, DCNo, CiHeats, DiHeats, VehicleCode,  ItCode, BoxQty, ShortQty, ProcessCode, RejCode, NatureCode, Weight, LabourRate, Hours, FurnaceTonnage, CHNo, CiRate, DiRate, BreakDownMin, Remark2, Qty, Remark1, DeptCode, YearCode, CompCode, USERID, ComputerID FROM ProcessEntryTemp;
+  
+  DELETE TETS
+  FROM ProcessEntryTemp AS TETS
+  WHERE TETS.EntryNo = '${operation === 'update' ? entryNo : maxEntryNo + 1}' AND TETS.Flag = '${flag}' AND TETS.DeptCode = '${DeptCode}' AND TETS.YearCode = '${YearCode}' AND TETS.CompCode = '${CompCode}';
+   `;
+       
+
+  sql.query(query, (err) => {
+    if (err) {
+      console.log('Error:', err);
+      res.status(500).json({ error: 'Internal server error' });
+    } else {
+      res.json({ message: 'Data saved and deleted successfully' });
+    }
   });
+}); */
 
-  // PUT update an existing Qual
-  app.put('/api/qual/:qualificationCode', (req, res) => {
-    const { qualificationCode } = req.params;
 
-    const { qualificationName, UserID } = req.body;
+//Update ProcessEntry
+ app.post('/api/SaveDistProcessEntries', async (req, res) => {
+  const { flag, DeptCode, YearCode, CompCode, trDate, SubAccode, PONo, PODate, CIHeats, DIHeats, CIRate, DIRate, VehicleCode, EmpCode, DCNo, ChNo, BreakdownMin, Remark2, NatureCode, FurnaceTonnage, Hours, operation, entryNo, ItCode, Qty, ShortQty, Remark1, Boxes, Weight, RejCode, ProcessCode, LabourRate, USERID} = req.body; 
+  // Get the latest max entry number for the given flag
+  const getMaxEntryNoQuery = `
+    SELECT MAX(EntryNo) AS MaxEntryNo
+    FROM ProcessEntry
+    WHERE Flag ='${flag}' AND DeptCode ='${DeptCode}' AND YearCode ='${YearCode}' AND CompCode ='${CompCode}'`;
+    console.log("getMaxEntryNoQuery",getMaxEntryNoQuery);
+  
+    const maxEntryNoResult = await sql.query(getMaxEntryNoQuery);
+    const maxEntryNo = maxEntryNoResult.recordset[0]?.MaxEntryNo || 0;
+    console.log("maxEntryNo",maxEntryNo);
 
-    const query = `
-      UPDATE QualificationMaster
-      SET Qualification=N'${qualificationName}', Userid=N'${UserID}'
-      WHERE QualificationCode=${qualificationCode};
-    `;
-    sql.query(query, (err, result) => {
-      if (err) {
-        console.log('Error:', err);
-        res.status(500).json({ error: 'Internal server error' });
-      } else {
-        if (result.rowsAffected && result.rowsAffected[0] > 0) {
-          res.json({
-            message: 'Qualification updated successfully',
-            QualificationCode: qualificationCode,
-            qualificationName,
-            UserID,
-          });
-        } else {
-          res.status(404).json({ error: 'Record not found' });
-        }
-      }
-    });
+  // SQL query to insert data into TranEntry and delete from TranEntryTempSub
+  const query = `
+    DELETE PE
+    FROM ProcessEntry AS PE
+    WHERE PE.EntryNo = '${operation === 'update' ? entryNo : maxEntryNo + 1}' AND PE.Flag = '${flag}' AND PE.DeptCode = '${DeptCode}' AND PE.YearCode = '${YearCode}' AND PE.CompCode = '${CompCode}';
+
+    INSERT INTO ProcessEntry (TrDate, Flag, SubAccode, EmpCode, PONo, PODate, DCNo, CiHeats, DiHeats, VehicleCode,  ItCode, BoxQty, ShortQty, ProcessCode, RejCode, NatureCode, Weight, LabourRate, Hours, FurnaceTonnage, CHNo, CiRate, DiRate, BreakdownMin, Remark2, Qty, Remark1, EntryNo, DeptCode, YearCode, CompCode, USERID, ComputerID)
+    SELECT
+    TrDate,Flag, SubAccode, EmpCode, PONo, PODate, DCNo,  CiHeats, DiHeats, VehicleCode,  ItCode, BoxQty, ShortQty, ProcessCode, RejCode, NatureCode, Weight, LabourRate, Hours, FurnaceTonnage, CHNo, CiRate, DiRate, BreakdownMin, Remark2, Qty, Remark1
+     ,'${operation === 'update' ? entryNo : maxEntryNo + 1}', DeptCode, YearCode, CompCode, USERID, COMPUTERID
+     FROM ProcessEntryTemp;
+
+    DELETE PET
+    FROM ProcessEntryTemp AS PET
+    WHERE PET.EntryNo = '${operation === 'update' ? entryNo : maxEntryNo + 1}' AND PET.Flag = '${flag}' AND PET.DeptCode = '${DeptCode}' AND PET.YearCode = '${YearCode}' AND PET.CompCode = '${CompCode}';
+`;
+
+  sql.query(query, (err) => {
+    if (err) {
+      console.log('Error:', err);
+      res.status(500).json({ error: 'Internal server error' });
+    } else {
+      res.json({ message: 'Data saved and deleted successfully' });
+    }
   });
-
-  // DELETE a Qual
-  app.delete('/api/qual/:QualificationCode', (req, res) => {
-    const { QualificationCode } = req.params;
-    const query = `DELETE FROM QualificationMaster WHERE QualificationCode='${QualificationCode}'`;
-    sql.query(query, (err) => {
-      if (err) {
-        console.log('Error:', err);
-        res.status(500).json({ error: 'Internal server error' });
-      } else {
-        res.json({ message: 'Qualification deleted successfully' });
-      }
-    });
-  }); 
-
-  // For Gang Master------------------------------------------------------------------------------------
-
-  // GET all gang
-  app.get('/api/gang', (req, res) => {
-    const query = 'SELECT * FROM GangMaster';
-    sql.query(query, (err, result) => {
-      if (err) {
-        console.log('Error:', err);
-        res.status(500).json({ error: 'Internal server error' });
-      } else {
-        res.json(result.recordset);
-      }
-    });
-  });
-
-  // POST a new Gang
-  app.post('/api/gang', (req, res) => {
-    const { GangCode, GangName, GangRemark ,UserID} = req.body;
-
-    const query = `
-      INSERT INTO GangMaster (GangCode, GangName, GangRemark1 ,Userid)
-      VALUES ('${GangCode}', N'${GangName}', N'${GangRemark}' ,N'${UserID}');
-    `;
-    sql.query(query, (err) => {
-      if (err) {
-        console.log('Error:', err);
-        res.status(500).json({ error: 'Internal server error' });
-      } else {
-        res.json({ message: 'Gang created successfully' });
-      }
-    });
-  });
-
-  // PUT update an existing Gang
-  app.put('/api/gang/:GangCode', (req, res) => {
-    const { GangCode } = req.params;
-    const { GangName, GangRemark ,UserID } = req.body;
-
-    const query = `
-      UPDATE GangMaster
-      SET GangName=N'${GangName}', GangRemark1=N'${GangRemark}' ,Userid=N'${UserID}'
-      WHERE GangCode='${GangCode}';
-    `;
-    sql.query(query, (err, result) => {
-      if (err) {
-        console.log('Error:', err);
-        res.status(500).json({ error: 'Internal server error' });
-      } else {
-        if (result.rowsAffected && result.rowsAffected[0] > 0) {
-          res.json({
-            message: 'Gang updated successfully',
-            GangCode: GangCode,
-            GangName,
-            GangRemark,
-            UserID,
-          });
-        } else {
-          res.status(404).json({ error: 'Record not found' });
-        }
-      }
-    });
-  });
-
-  // DELETE a Gang
-  app.delete('/api/gang/:GangCode', (req, res) => {
-    const { GangCode } = req.params;
-    const query = `DELETE FROM GangMaster WHERE GangCode=${GangCode}`;
-    sql.query(query, (err) => {
-      if (err) {
-        console.log('Error:', err);
-        res.status(500).json({ error: 'Internal server error' });
-      } else {
-        res.json({ message: 'Gang deleted successfully' });
-      }
-    });
-  }); 
-
-  // For EmpType Master------------------------------------------------------------------------------------
-
-  // GET all EmpType
-  app.get('/api/emptype', (req, res) => {
-    const query = 'SELECT * FROM EmpTypeMaster';
-    sql.query(query, (err, result) => {
-      if (err) {
-        console.log('Error:', err);
-        res.status(500).json({ error: 'Internal server error' });
-      } else {
-        res.json(result.recordset);
-      }
-    });
-  });
-
-  // POST a new EmpType
-  app.post('/api/emptype', (req, res) => {
-    const { EmpTypeCode, EmpType , UserID } = req.body;
-
-    const query = `
-      INSERT INTO EmpTypeMaster (EmpTypeCode, EmpType ,UserID)
-      VALUES ('${EmpTypeCode}', N'${EmpType}',${UserID});
-    `;
-    sql.query(query, (err) => {
-      if (err) {
-        console.log('Error:', err);
-        res.status(500).json({ error: 'Internal server error' });
-      } else {
-        res.json({ message: 'EmpType created successfully' });
-      }
-    });
-  });
-
-  // PUT update an existing EMpType
-  app.put('/api/emptype/:EmpTypeCode', (req, res) => {
-    const { EmpTypeCode } = req.params;
-    const { EmpType, UserID} = req.body;
-
-    const query = `
-      UPDATE EmpTypeMaster
-      SET EmpType=N'${EmpType}' UserID=${UserID} WHERE EmpTypeCode='${EmpTypeCode}';
-    `;
-    sql.query(query, (err, result) => {
-      if (err) {
-        console.log('Error:', err);
-        res.status(500).json({ error: 'Internal server error' });
-      } else {
-        if (result.rowsAffected && result.rowsAffected[0] > 0) {
-          res.json({
-            message: 'EmpType updated successfully',
-            EmpTypeCode: EmpTypeCode,
-            EmpType,
-          });
-        } else {
-          res.status(404).json({ error: 'Record not found' });
-        }
-      }
-    });
-  });
-
-  // DELETE a EmpType
-  app.delete('/api/emptype/:EmpTypeCode', (req, res) => {
-    const { EmpTypeCode } = req.params;
-    const query = `DELETE FROM EmpTypeMaster WHERE EmpTypeCode=${EmpTypeCode}`;
-    sql.query(query, (err) => {
-      if (err) {
-        console.log('Error:', err);
-        res.status(500).json({ error: 'Internal server error' });
-      } else {
-        res.json({ message: 'EmpType deleted successfully' });
-      }
-    });
-  });
-
-  //taluka master 
-  // Get all Talukas
-  app.get('/api/talukas', (req, res) => {
-    const query = 'SELECT * FROM TalukaMaster';
-    sql.query(query, (err, result) => {
-      if (err) {
-        console.log('Error:', err);
-        res.status(500).json({ error: 'Internal server error' });
-      } else {
-        res.json(result.recordset);
-      }
-    });
-  });
-
-  // Create a new Taluka
-  app.post('/api/talukas', (req, res) => {
-    const {
-      TalukaCode,
-      TalukaName,
-      DistrictCode,
-      DeptCode,
-      YearCode,
-      UserID,
-    } = req.body;
-    const query = `
-      INSERT INTO TalukaMaster (TalukaCode, TalukaName, DistrictCode, DeptCode, YearCode, UserID)
-      VALUES ('${TalukaCode}', N'${TalukaName}', '${DistrictCode}', '${DeptCode}', '${YearCode}', '${UserID}');
-    `;
-    sql.query(query, (err) => {
-      if (err) {
-        console.log('Error:', err);
-        res.status(500).json({ error: 'Internal server error' });
-      } else {
-        res.json({ message: 'Taluka created successfully' });
-      }
-    });
-  });
-
-  // Update an existing Taluka
-  app.put('/api/talukas/:talukaId', (req, res) => {
-    const { talukaId } = req.params;
-    const {
-      TalukaName,
-      DistrictCode,
-      DeptCode,
-      YearCode,
-      UserID,
-    } = req.body;
-    const query = `
-      UPDATE TalukaMaster
-      SET TalukaName=N'${TalukaName}', DistrictCode='${DistrictCode}', DeptCode='${DeptCode}', YearCode='${YearCode}', UserID='${UserID}'
-      WHERE TalukaCode='${talukaId}';
-    `;
-    sql.query(query, (err, result) => {
-      if (err) {
-        console.log('Error:', err);
-        res.status(500).json({ error: 'Internal server error' });
-      } else {
-        if (result.rowsAffected && result.rowsAffected[0] > 0) {
-          res.json({
-            message: 'Taluka updated successfully',
-            TalukaCode: talukaId,
-            TalukaName,
-            DistrictCode,
-            DeptCode,
-            YearCode,
-            UserID,
-          });
-        } else {
-          res.status(404).json({ error: 'Record not found' });
-        }
-      }
-    });
-  });
-
-  // Delete a Taluka
-  app.delete('/api/talukas/:talukaId', (req, res) => {
-    const { talukaId } = req.params;
-    const query = `DELETE FROM TalukaMaster WHERE TalukaCode='${talukaId}'`;
-    sql.query(query, (err) => {
-      if (err) {
-        console.log('Error:', err);
-        res.status(500).json({ error: 'Internal server error' });
-      } else {
-        res.json({ message: 'Taluka deleted successfully' });
-      }
-    });
-  });
-
-
-
-     //TranGroupMaster entries
-  // GET all TranGroupMaster entries
-  app.get('/api/trangroups', (req, res) => {
-    const query = 'SELECT * FROM TranGroupMaster';
-    sql.query(query, (err, result) => {
-      if (err) {
-        console.log('Error:', err);
-        res.status(500).json({ error: 'Internal server error' });
-      } else {
-        res.json(result.recordset);
-      }
-    });
-  });
-
-  // POST a new TranGroupMaster entry
-  app.post('/api/trangroups', (req, res) => {
-    const {
-      AcGroupCode,
-      OpBal,
-      TOpBal,
-      TDebit,
-      TCredit,
-      TCurBal,
-      DeptCode,
-      YearCode,
-      UserID,
-    } = req.body;
-    const query = `
-      INSERT INTO TranGroupMaster (AcGroupCode, OpBal, TOpBal, TDebit, TCredit, TCurBal, DeptCode, YearCode, UserID)
-      VALUES ('${AcGroupCode}', '${OpBal}', '${TOpBal}', '${TDebit}', '${TCredit}', '${TCurBal}', '${DeptCode}', '${YearCode}', '${UserID}');
-    `;
-    sql.query(query, (err) => {
-      if (err) {
-        console.log('Error:', err);
-        res.status(500).json({ error: 'Internal server error' });
-      } else {
-        res.json({ message: 'TranGroup created successfully' });
-      }
-    });
-  });
-
-  // PUT (update) a TranGroupMaster entry by AcGroupCode
-  app.put('/api/trangroups/:acGroupCode', (req, res) => {
-    const { acGroupCode } = req.params;
-    const {
-      OpBal,
-      TOpBal,
-      TDebit,
-      TCredit,
-      TCurBal,
-      DeptCode,
-      YearCode,
-      UserID,
-    } = req.body;
-    const query = `
-      UPDATE TranGroupMaster
-      SET OpBal='${OpBal}', TOpBal='${TOpBal}', TDebit='${TDebit}', TCredit='${TCredit}', 
-          TCurBal='${TCurBal}', DeptCode='${DeptCode}', YearCode='${YearCode}', UserID='${UserID}'
-      WHERE AcGroupCode='${acGroupCode}';
-    `;
-    sql.query(query, (err, result) => {
-      if (err) {
-        console.log('Error:', err);
-        res.status(500).json({ error: 'Internal server error' });
-      } else {
-        if (result.rowsAffected && result.rowsAffected[0] > 0) {
-          res.json({
-            message: 'TranGroup updated successfully',
-            AcGroupCode,
-            OpBal,
-            TOpBal,
-            TDebit,
-            TCredit,
-            TCurBal,
-            DeptCode,
-            YearCode,
-            UserID,
-          });
-        } else {
-          res.status(404).json({ error: 'Record not found' });
-        }
-      }
-    });
-  });
-
-  // DELETE a TranGroupMaster entry by AcGroupCode
-  app.delete('/api/trangroups/:acGroupCode', (req, res) => {
-    const { acGroupCode } = req.params;
-    const query = `DELETE FROM TranGroupMaster WHERE AcGroupCode='${acGroupCode}'`;
-    sql.query(query, (err) => {
-      if (err) {
-        console.log('Error:', err);
-        res.status(500).json({ error: 'Internal server error' });
-      } else {
-        res.json({ message: 'TranGroup deleted successfully' });
-      }
-    });
-  });
-
-
-  //TranItMaster entries
-  // Get all TranItMaster entries
-  app.get('/api/tranItMaster', (req, res) => {
-    const query = 'SELECT * FROM TranItMaster';
-    sql.query(query, (err, result) => {
-      if (err) {
-        console.error('Error:', err);
-        res.status(500).json({ error: 'Internal server error' });
-      } else {
-        res.json(result.recordset);
-      }
-    });
-  });
-
-  // Create a new TranItMaster entry
-  app.post('/api/tranItMaster', (req, res) => {
-    const {
-      YearCode,
-      DeptCode,
-      ItCode,
-      Rate,
-      OpQty,
-      OpWt,
-      OpAmt,
-      ClQty,
-      ClWt,
-      ClAmt,
-      UserID
-    } = req.body;
-    const query = `
-      INSERT INTO TranItMaster (YearCode, DeptCode, ItCode, Rate, OpQty, OpWt, OpAmt, ClQty, ClWt, ClAmt,UserID)
-      VALUES ('${YearCode}', '${DeptCode}', '${ItCode}', '${Rate}', '${OpQty}', '${OpWt}', '${OpAmt}', '${ClQty}', '${ClWt}', '${ClAmt}',${UserID});
-    `;
-    sql.query(query, (err) => {
-      if (err) {
-        console.error('Error:', err);
-        res.status(500).json({ error: 'Internal server error' });
-      } else {
-        res.json({ message: 'TranItMaster created successfully' });
-      }
-    });
-  });
-
-  // Update an existing TranItMaster entry
-  app.put('/api/tranItMaster/:DeptCode/:ItCode', (req, res) => {
-    const {  DeptCode, ItCode } = req.params;
-    const {
-      YearCode,
-      Rate,
-      OpQty,
-      OpWt,
-      OpAmt,
-      ClQty,
-      ClWt,
-      ClAmt,
-      UserID
-    } = req.body;
-    const query = `
-      UPDATE TranItMaster
-      SET YearCode='${YearCode}', DeptCode='${DeptCode}', ItCode='${ItCode}', Rate='${Rate}', 
-          OpQty='${OpQty}', OpWt='${OpWt}', OpAmt='${OpAmt}', ClQty='${ClQty}', ClWt='${ClWt}', ClAmt='${ClAmt}',UserID=${UserID}
-      WHERE DeptCode='${DeptCode}' AND ItCode='${ItCode}';
-    `;
-    sql.query(query, (err, result) => {
-      if (err) {
-        console.error('Error:', err);
-        res.status(500).json({ error: 'Internal server error' });
-      } else {
-        if (result.rowsAffected && result.rowsAffected[0] > 0) {
-          res.json({
-            message: 'TranItMaster updated successfully',
-            YearCode,
-            DeptCode,
-            ItCode,
-            Rate,
-            OpQty,
-            OpWt,
-            OpAmt,
-            ClQty,
-            ClWt,
-            ClAmt,
-          });
-        } else {
-          res.status(404).json({ error: 'Record not found' });
-        }
-      }
-    });
-  });
-
-  // Delete a TranItMaster entry
-  app.delete('/api/tranItMaster/:DeptCode/:ItCode', (req, res) => {
-    const {  DeptCode, ItCode  } = req.params;
-    const query = `DELETE FROM TranItMaster WHERE DeptCode='${DeptCode}' AND ItCode='${ItCode}'`;
-    sql.query(query, (err) => {
-      if (err) {
-        console.error('Error:', err);
-        res.status(500).json({ error: 'Internal server error' });
-      } else {
-        res.json({ message: 'TranItMaster deleted successfully' });
-      }
-    });
-  });
-
-  //TranLedgerMaster
-  // GET all TranLedgerMaster entries
-  app.get('/api/tranledgers', (req, res) => {
-    const query = 'SELECT * FROM TranLedgerMaster';
-    sql.query(query, (err, result) => {
-      if (err) {
-        console.log('Error:', err);
-        res.status(500).json({ error: 'Internal server error' });
-      } else {
-        res.json(result.recordset);
-      }
-    });
-  });
-
-  // POST a new TranLedgerMaster entry
-  app.post('/api/tranledgers', (req, res) => {
-    const {
-      AcCode,
-      OpBal,
-      TOpBal,
-      TDebit,
-      TCredit,
-      TCurBal,
-      DeptCode,
-      YearCode,
-      UserID,
-    } = req.body;
-    const query = `
-      INSERT INTO TranLedgerMaster (AcCode, OpBal, TOpBal, TDebit, TCredit, TCurBal, DeptCode, YearCode, UserID)
-      VALUES ('${AcCode}', '${OpBal}', '${TOpBal}', '${TDebit}', '${TCredit}', '${TCurBal}', '${DeptCode}', '${YearCode}', '${UserID}');
-    `;
-    sql.query(query, (err) => {
-      if (err) {
-        console.log('Error:', err);
-        res.status(500).json({ error: 'Internal server error' });
-      } else {
-        res.json({ message: 'TranLedger created successfully' });
-      }
-    });
-  });
-
-  // PUT (Update) an existing TranLedgerMaster entry
-  app.put('/api/tranledgers/:AcCode', (req, res) => {
-    const { AcCode } = req.params;
-    const {
-      OpBal,
-      TOpBal,
-      TDebit,
-      TCredit,
-      TCurBal,
-      DeptCode,
-      YearCode,
-      UserID,
-    } = req.body;
-    const query = `
-      UPDATE TranLedgerMaster
-      SET OpBal='${OpBal}', TOpBal='${TOpBal}', TDebit='${TDebit}', TCredit='${TCredit}', TCurBal='${TCurBal}', 
-      DeptCode='${DeptCode}', YearCode='${YearCode}', UserID='${UserID}'
-      WHERE AcCode='${AcCode}';
-    `;
-    sql.query(query, (err, result) => {
-      if (err) {
-        console.log('Error:', err);
-        res.status(500).json({ error: 'Internal server error' });
-      } else {
-        if (result.rowsAffected && result.rowsAffected[0] > 0) {
-          res.json({
-            message: 'TranLedger updated successfully',
-            AcCode: AcCode,
-            OpBal,
-            TOpBal,
-            TDebit,
-            TCredit,
-            TCurBal,
-            DeptCode,
-            YearCode,
-            UserID,
-          });
-        } else {
-          res.status(404).json({ error: 'Record not found' });
-        }
-      }
-    });
-  });
-
-  // DELETE a TranLedgerMaster entry
-  app.delete('/api/tranledgers/:AcCode', (req, res) => {
-    const { AcCode } = req.params;
-    const query = `DELETE FROM TranLedgerMaster WHERE AcCode='${AcCode}'`;
-    sql.query(query, (err) => {
-      if (err) {
-        console.log('Error:', err);
-        res.status(500).json({ error: 'Internal server error' });
-      } else {
-        res.json({ message: 'TranLedger deleted successfully' });
-      }
-    });
-  });
-
-
-  //TranLedgerMasterTemp
-
-  // Get all ledger entries
-  app.get('/api/ledgerentries', (req, res) => {
-    const query = 'SELECT * FROM TranLedgerMasterTemp';
-    sql.query(query, (err, result) => {
-      if (err) {
-        console.log('Error:', err);
-        res.status(500).json({ error: 'Internal server error' });
-      } else {
-        res.json(result.recordset);
-      }
-    });
-  });
-
-  // Create a new ledger entry
-  app.post('/api/ledgerentries', (req, res) => {
-    const {
-      AcCode,
-      OpBal,
-      TOpBal,
-      TDebit,
-      TCredit,
-      TCurBal,
-      DeptCode,
-      YearCode,
-      UserID,
-    } = req.body;
-    const query = `
-      INSERT INTO TranLedgerMasterTemp (AcCode, OpBal, TOpBal, TDebit, TCredit, TCurBal, DeptCode, YearCode, UserID)
-      VALUES (${AcCode}, ${OpBal}, ${TOpBal}, ${TDebit}, ${TCredit}, ${TCurBal}, ${DeptCode}, ${YearCode}, '${UserID}');
-    `;
-    sql.query(query, (err) => {
-      if (err) {
-        console.log('Error:', err);
-        res.status(500).json({ error: 'Internal server error' });
-      } else {
-        res.json({ message: 'Ledger entry created successfully' });
-      }
-    });
-  });
-
-  // Update a ledger entry
-  app.put('/api/ledgerentries/:acCode', (req, res) => {
-    const { acCode } = req.params;
-    const {
-      OpBal,
-      TOpBal,
-      TDebit,
-      TCredit,
-      TCurBal,
-      DeptCode,
-      YearCode,
-      UserID,
-    } = req.body;
-    const query = `
-      UPDATE TranLedgerMasterTemp
-      SET OpBal=${OpBal}, TOpBal=${TOpBal}, TDebit=${TDebit}, TCredit=${TCredit},
-          TCurBal=${TCurBal}, DeptCode=${DeptCode}, YearCode=${YearCode}, UserID='${UserID}'
-      WHERE AcCode=${acCode};
-    `;
-    sql.query(query, (err, result) => {
-      if (err) {
-        console.log('Error:', err);
-        res.status(500).json({ error: 'Internal server error' });
-      } else {
-        if (result.rowsAffected && result.rowsAffected[0] > 0) {
-          res.json({
-            message: 'Ledger entry updated successfully',
-            AcCode: acCode,
-            OpBal,
-            TOpBal,
-            TDebit,
-            TCredit,
-            TCurBal,
-            DeptCode,
-            YearCode,
-            UserID,
-          });
-        } else {
-          res.status(404).json({ error: 'Record not found' });
-        }
-      }
-    });
-  });
-
-  // Delete a ledger entry
-  app.delete('/api/ledgerentries/:acCode', (req, res) => {
-    const { acCode } = req.params;
-    const query = `DELETE FROM TranLedgerMasterTemp WHERE AcCode=${acCode}`;
-    sql.query(query, (err) => {
-      if (err) {
-        console.log('Error:', err);
-        res.status(500).json({ error: 'Internal server error' });
-      } else {
-        res.json({ message: 'Ledger entry deleted successfully' });
-      }
-    });
-  });
-
-  //TranSubLedger entries
-  // Get all TranSubLedger entries
-  app.get('/api/tranSubLedgers', (req, res) => {
-    const query = 'SELECT * FROM TranSubLedgerMaster';
-    sql.query(query, (err, result) => {
-      if (err) {
-        console.log('Error:', err);
-        res.status(500).json({ error: 'Internal server error' });
-      } else {
-        res.json(result.recordset);
-      }
-    });
-  });
-
-  // Create a new TranSubLedger entry
-  app.post('/api/tranSubLedgers', (req, res) => {
-    const {
-      AcCode,
-      SubAcCode,
-      OpBal,
-      TOpBal,
-      Debit,
-      Credit,
-      CurBal,
-      DeptCode,
-      YearCode,
-      UserID,
-      SubLedgerGroupCode,
-    } = req.body;
-    const query = `
-      INSERT INTO TranSubLedgerMaster (AcCode, SubAcCode, OpBal, TOpBal, Debit, Credit, CurBal, DeptCode, YearCode, UserID, SubLedgerGroupCode)
-      VALUES ('${AcCode}', '${SubAcCode}', '${OpBal}', '${TOpBal}', '${Debit}', '${Credit}', '${CurBal}', '${DeptCode}', '${YearCode}', '${UserID}', '${SubLedgerGroupCode}');
-    `;
-    sql.query(query, (err) => {
-      if (err) {
-        console.log('Error:', err);
-        res.status(500).json({ error: 'Internal server error' });
-      } else {
-        res.json({ message: 'TranSubLedger created successfully' });
-      }
-    });
-  });
-
-  // Update a TranSubLedger entry
-  app.put('/api/tranSubLedgers/:acCode', (req, res) => {
-    const { acCode } = req.params;
-    const {
-      SubAcCode,
-      OpBal,
-      TOpBal,
-      Debit,
-      Credit,
-      CurBal,
-      DeptCode,
-      YearCode,
-      UserID,
-      SubLedgerGroupCode,
-    } = req.body;
-    const query = `
-      UPDATE TranSubLedgerMaster
-      SET SubAcCode='${SubAcCode}', OpBal='${OpBal}', TOpBal='${TOpBal}', Debit='${Debit}', Credit='${Credit}', CurBal='${CurBal}', DeptCode='${DeptCode}', YearCode='${YearCode}', UserID='${UserID}', SubLedgerGroupCode='${SubLedgerGroupCode}'
-      WHERE AcCode='${acCode}';
-    `;
-    sql.query(query, (err, result) => {
-      if (err) {
-        console.log('Error:', err);
-        res.status(500).json({ error: 'Internal server error' });
-      } else {
-        if (result.rowsAffected && result.rowsAffected[0] > 0) {
-          res.json({
-            message: 'TranSubLedger updated successfully',
-            AcCode: acCode,
-            SubAcCode,
-            OpBal,
-            TOpBal,
-            Debit,
-            Credit,
-            CurBal,
-            DeptCode,
-            YearCode,
-            UserID,
-            SubLedgerGroupCode,
-          });
-        } else {
-          res.status(404).json({ error: 'Record not found' });
-        }
-      }
-    });
-  });
-
-  // Delete a TranSubLedger entry
-  app.delete('/api/tranSubLedgers/:acCode', (req, res) => {
-    const { acCode } = req.params;
-    const query = `DELETE FROM TranSubLedgerMaster WHERE AcCode='${acCode}'`;
-    sql.query(query, (err) => {
-      if (err) {
-        console.log('Error:', err);
-        res.status(500).json({ error: 'Internal server error' });
-      } else {
-        res.json({ message: 'TranSubLedger deleted successfully' });
-      }
-    });
-  });
-
-  //TranSubLedgerMasterTemp
-  // GET all TranSubLedgerMasterTemp entries
-  app.get('/api/entries', (req, res) => {
-    const query = 'SELECT * FROM TranSubLedgerMasterTemp';
-    sql.query(query, (err, result) => {
-      if (err) {
-        console.log('Error:', err);
-        res.status(500).json({ error: 'Internal server error' });
-      } else {
-        res.json(result.recordset);
-      }
-    });
-  });
-
-  // POST a new TranSubLedgerMasterTemp entry
-  app.post('/api/entries', (req, res) => {
-    const {
-      AcCode,
-      SubAcCode,
-      OpBal,
-      TOpBal,
-      Debit,
-      Credit,
-      CurBal,
-      DeptCode,
-      YearCode,
-      UserID,
-      SubLedgerGroupCode,
-    } = req.body;
-    const query = `
-      INSERT INTO TranSubLedgerMasterTemp (AcCode, SubAcCode, OpBal, TOpBal, Debit, Credit, CurBal, DeptCode, YearCode, UserID, SubLedgerGroupCode)
-      VALUES (
-        '${AcCode}',
-        '${SubAcCode}',
-        '${OpBal}',
-        '${TOpBal}',
-        '${Debit}',
-        '${Credit}',
-        '${CurBal}',
-        '${DeptCode}',
-        '${YearCode}',
-        '${UserID}',
-        '${SubLedgerGroupCode}'
-      );
-    `;
-    sql.query(query, (err) => {
-      if (err) {
-        console.log('Error:', err);
-        res.status(500).json({ error: 'Internal server error' });
-      } else {
-        res.json({ message: 'TranSubLedgerMasterTemp entry created successfully' });
-      }
-    });
-  });
-
-  // PUT (update) a TranSubLedgerMasterTemp entry by ID
-  app.put('/api/entries/:entryId', (req, res) => {
-    const { entryId } = req.params;
-    const {
-      AcCode,
-      SubAcCode,
-      OpBal,
-      TOpBal,
-      Debit,
-      Credit,
-      CurBal,
-      DeptCode,
-      YearCode,
-      UserID,
-      SubLedgerGroupCode,
-    } = req.body;
-    const query = `
-      UPDATE TranSubLedgerMasterTemp
-      SET
-        AcCode='${AcCode}',
-        SubAcCode='${SubAcCode}',
-        OpBal='${OpBal}',
-        TOpBal='${TOpBal}',
-        Debit='${Debit}',
-        Credit='${Credit}',
-        CurBal='${CurBal}',
-        DeptCode='${DeptCode}',
-        YearCode='${YearCode}',
-        UserID='${UserID}',
-        SubLedgerGroupCode='${SubLedgerGroupCode}'
-      WHERE AcCode='${entryId}';
-    `;
-    sql.query(query, (err, result) => {
-      if (err) {
-        console.log('Error:', err);
-        res.status(500).json({ error: 'Internal server error' });
-      } else {
-        if (result.rowsAffected && result.rowsAffected[0] > 0) {
-          res.json({
-            message: 'TranSubLedgerMasterTemp entry updated successfully',
-            AcCode: entryId,
-            SubAcCode,
-            OpBal,
-            TOpBal,
-            Debit,
-            Credit,
-            CurBal,
-            DeptCode,
-            YearCode,
-            UserID,
-            SubLedgerGroupCode,
-          });
-        } else {
-          res.status(404).json({ error: 'Record not found' });
-        }
-      }
-    });
-  });
-
-  // DELETE a TranSubLedgerMasterTemp entry by ID
-  app.delete('/api/entries/:entryId', (req, res) => {
-    const { entryId } = req.params;
-    const query = `DELETE FROM TranSubLedgerMasterTemp WHERE AcCode='${entryId}'`;
-    sql.query(query, (err) => {
-      if (err) {
-        console.log('Error:', err);
-        res.status(500).json({ error: 'Internal server error' });
-      } else {
-        res.json({ message: 'TranSubLedgerMasterTemp entry deleted successfully' });
-      }
-    });
-  });
-*/}
-
-
-
-
-
+}); 
