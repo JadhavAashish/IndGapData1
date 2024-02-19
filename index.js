@@ -5366,7 +5366,7 @@ app.post('/api/processtemp', (req, res) => {
     DeptCode,
     YearCode,
     CompCode,
-    USERID,
+    UserID,
     uniqueCode
   } = req.body;
 
@@ -5410,7 +5410,7 @@ app.post('/api/processtemp', (req, res) => {
     DeptCode,
     YearCode,
     CompCode,
-    USERID,
+    UserID,
     uniqueCode
   }); 
   const query = `
@@ -5498,7 +5498,7 @@ app.post('/api/processtemp', (req, res) => {
       '${DeptCode}',
       '${YearCode}',
       '${CompCode}',
-      '${USERID}'
+      '${UserID}'
     );
   `;
 
@@ -5731,9 +5731,13 @@ app.put('/api/processtemp/:entryNo/:flag/:uniqueCode', (req, res) => {
     Hours,
     Rate,
     Amt,
-
+    GrossTotAmt,
+    CGstAmt,
+    SGstAmt,
+    IGstAmt,
+    NetAmt,
     Remark3,
-    USERID,
+    UserID,
     DeptCode,
     YearCode,
     CompCode,
@@ -5778,7 +5782,7 @@ app.put('/api/processtemp/:entryNo/:flag/:uniqueCode', (req, res) => {
       DeptCode = '${DeptCode}',
       YearCode = '${YearCode}',
       CompCode = '${CompCode}',
-      USERID = '${USERID}'
+      USERID = '${UserID}'
     WHERE EntryNo = '${entryNo}' AND ComputerID = '${uniqueCode}' AND Flag='${flag}';
   `;
   
