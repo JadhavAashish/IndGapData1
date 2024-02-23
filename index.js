@@ -4736,7 +4736,7 @@ app.put('/api/processtemp/:entryNo/:flag/:uniqueCode', (req, res) => {
 
 // Delete Entry API
 app.delete('/api/processtemp/:EntryNo/:Flag', async (req, res) => {
-  const { EntryNo, Flag } = req.params;
+  const { EntryNo, Flag, CompCode } = req.params;
   const UserName = req.headers['username'];
 
   try {
@@ -4759,7 +4759,7 @@ app.delete('/api/processtemp/:EntryNo/:Flag', async (req, res) => {
 
         if (AllowEntryDelete === 1) {
           // The user has permission to delete entries
-          const deleteQuery = `DELETE FROM ProcessEntryTemp WHERE EntryNo='${EntryNo}' AND Flag='${Flag}'`;
+          const deleteQuery = `DELETE FROM ProcessEntryTemp WHERE EntryNo='${EntryNo}' AND Flag='${Flag}' AND ComputerID='${CompCode}'`;
 
           sql.query(deleteQuery, (deleteErr) => {
             if (deleteErr) {
