@@ -4469,6 +4469,7 @@ app.post('/api/processtemp', (req, res) => {
     RejCode,
     NatureCode,
     Weight,
+    WeightPer,
     LabourRate,
     FurnaceTonnage,
     Hours,
@@ -4513,6 +4514,7 @@ app.post('/api/processtemp', (req, res) => {
     RejCode,
     NatureCode,
     Weight,
+    WeightPer,
     LabourRate,
     FurnaceTonnage,
     Hours,
@@ -4557,6 +4559,7 @@ app.post('/api/processtemp', (req, res) => {
       RejCode,
       NatureCode,
       Weight,  
+      WeightPer,
       LabourRate,
       FurnaceTonnage,
       Hours,
@@ -4600,6 +4603,7 @@ app.post('/api/processtemp', (req, res) => {
       '${RejCode}',
       '${NatureCode}',
       '${Weight}',
+      '${WeightPer}',
       '${LabourRate}',
       '${FurnaceTonnage}',
       '${Hours}',
@@ -4661,6 +4665,7 @@ app.put('/api/processtemp/:entryNo/:flag/:uniqueCode', (req, res) => {
     Remark1,
     Boxes,
     Weight,  
+    WeightPer,
     RejCode,
     ProcessCode,
     LabourRate,
@@ -4699,6 +4704,7 @@ app.put('/api/processtemp/:entryNo/:flag/:uniqueCode', (req, res) => {
       RejCode = '${RejCode}',
       NatureCode = '${NatureCode}',
       Weight = '${Weight}',
+      WeightPer = '${WeightPer}',
       LabourRate = '${LabourRate}',
       CiRate = '${CIRate}',
       DiRate = '${DIRate}',
@@ -4857,8 +4863,8 @@ app.post('/api/SaveProcessentries', async (req, res) => {
     WHERE PE.EntryNo = ${operation === 'update' ? entryNo : maxEntryNo + 1} AND PE.Flag = '${flag}' AND PE.DeptCode = '${DeptCode}' AND PE.YearCode = '${YearCode}'  AND PE.CompCode = '${CompCode}';
 
 
-    INSERT INTO ProcessEntry (EntryNo, TrDate, Flag, SubAccode, EmpCode, PONo, PODate, DCNo, CiHeats, DiHeats, VehicleCode, DeptCode, ItCode, BoxQty, ShortQty, ProcessCode, RejCode, NatureCode, Weight, LabourRate, Hours, FurnaceTonnage, CHNo, CiRate, DiRate, BreakDownMin, Remark2, Qty, Remark1, Remark3, Rate, Amt, TaxableAmt, CGstAmt, SGstAmt, IGstAmt, NetAmt, YearCode, CompCode, USERID, ComputerID)
-    SELECT ${operation === 'update' ? entryNo : maxEntryNo + 1},  TrDate, Flag, SubAccode, EmpCode, PONo, PODate, DCNo, CiHeats, DiHeats, VehicleCode, DeptCode, ItCode, BoxQty, ShortQty, ProcessCode, RejCode, NatureCode, Weight, LabourRate, Hours, FurnaceTonnage, CHNo, CiRate, DiRate, BreakDownMin, Remark2, Qty, Remark1, Remark3, Rate, Amt, TaxableAmt, CGstAmt, SGstAmt, IGstAmt, NetAmt, YearCode, CompCode, USERID, ComputerID FROM ProcessEntryTemp;
+    INSERT INTO ProcessEntry (EntryNo, TrDate, Flag, SubAccode, EmpCode, PONo, PODate, DCNo, CiHeats, DiHeats, VehicleCode, DeptCode, ItCode, BoxQty, ShortQty, ProcessCode, RejCode, NatureCode, Weight, WeightPer, LabourRate, Hours, FurnaceTonnage, CHNo, CiRate, DiRate, BreakDownMin, Remark2, Qty, Remark1, Remark3, Rate, Amt, TaxableAmt, CGstAmt, SGstAmt, IGstAmt, NetAmt, YearCode, CompCode, USERID, ComputerID)
+    SELECT ${operation === 'update' ? entryNo : maxEntryNo + 1},  TrDate, Flag, SubAccode, EmpCode, PONo, PODate, DCNo, CiHeats, DiHeats, VehicleCode, DeptCode, ItCode, BoxQty, ShortQty, ProcessCode, RejCode, NatureCode, Weight, WeightPer, LabourRate, Hours, FurnaceTonnage, CHNo, CiRate, DiRate, BreakDownMin, Remark2, Qty, Remark1, Remark3, Rate, Amt, TaxableAmt, CGstAmt, SGstAmt, IGstAmt, NetAmt, YearCode, CompCode, USERID, ComputerID FROM ProcessEntryTemp;
 
     DELETE PET
     FROM ProcessEntryTemp AS PET
@@ -4899,8 +4905,8 @@ app.post('/api/insertDataAndFlag', (req, res) => {
     DELETE FROM ProcessEntryTemp;
 
     
-    INSERT INTO ProcessEntryTemp (flag, EntryNo, TrDate, SubAccode, EmpCode, PONo, PODate, DCNo, CiHeats, DiHeats, VehicleCode, DeptCode, ItCode, BoxQty, ShortQty, ProcessCode, RejCode, NatureCode, Weight, LabourRate, Hours, FurnaceTonnage, CHNo, CiRate, DiRate, BreakDownMin, Remark2, Qty, Remark1, Remark3, Rate, Amt, TaxableAmt, CGstAmt, SGstAmt, IGstAmt, NetAmt, YearCode, CompCode, USERID, ComputerID)
-    SELECT flag, EntryNo, TrDate, SubAccode, EmpCode, PONo, PODate, DCNo, CiHeats, DiHeats, VehicleCode, DeptCode, ItCode, BoxQty, ShortQty, ProcessCode, RejCode, NatureCode, Weight, LabourRate, Hours, FurnaceTonnage, CHNo, CiRate, DiRate, BreakDownMin, Remark2, Qty, Remark1, Remark3, Rate, Amt, TaxableAmt, CGstAmt, SGstAmt, IGstAmt, NetAmt, YearCode, CompCode, USERID, ComputerID
+    INSERT INTO ProcessEntryTemp (flag, EntryNo, TrDate, SubAccode, EmpCode, PONo, PODate, DCNo, CiHeats, DiHeats, VehicleCode, DeptCode, ItCode, BoxQty, ShortQty, ProcessCode, RejCode, NatureCode, Weight, WeightPer, LabourRate, Hours, FurnaceTonnage, CHNo, CiRate, DiRate, BreakDownMin, Remark2, Qty, Remark1, Remark3, Rate, Amt, TaxableAmt, CGstAmt, SGstAmt, IGstAmt, NetAmt, YearCode, CompCode, USERID, ComputerID)
+    SELECT flag, EntryNo, TrDate, SubAccode, EmpCode, PONo, PODate, DCNo, CiHeats, DiHeats, VehicleCode, DeptCode, ItCode, BoxQty, ShortQty, ProcessCode, RejCode, NatureCode, Weight, WeightPer, LabourRate, Hours, FurnaceTonnage, CHNo, CiRate, DiRate, BreakDownMin, Remark2, Qty, Remark1, Remark3, Rate, Amt, TaxableAmt, CGstAmt, SGstAmt, IGstAmt, NetAmt, YearCode, CompCode, USERID, ComputerID
     FROM ProcessEntry
     WHERE EntryNo = @entryNo AND Flag = @flag AND DeptCode = @DeptCode  AND YearCode = @YearCode  AND CompCode = @CompCode;
   `;
@@ -4942,9 +4948,9 @@ app.post('/api/insertDataAndFlag', (req, res) => {
     FROM ProcessEntry AS PE
     WHERE PE.EntryNo = '${operation === 'update' ? entryNo : maxEntryNo + 1}' AND PE.Flag = '${flag}' AND PE.DeptCode = '${DeptCode}' AND PE.YearCode = '${YearCode}' AND PE.CompCode = '${CompCode}';
 
-    INSERT INTO ProcessEntry (TrDate, Flag, SubAccode, EmpCode, PONo, PODate, DCNo, CiHeats, DiHeats, VehicleCode,  ItCode, BoxQty, ShortQty, ProcessCode, RejCode, NatureCode, Weight, LabourRate, Hours, FurnaceTonnage, CHNo, CiRate, DiRate, BreakDownMin, Remark2, Qty, Remark1, Remark3,Rate, Amt, TaxableAmt, CGstAmt, SGstAmt, IGstAmt, NetAmt, EntryNo, DeptCode, YearCode, CompCode, USERID, ComputerID)
+    INSERT INTO ProcessEntry (TrDate, Flag, SubAccode, EmpCode, PONo, PODate, DCNo, CiHeats, DiHeats, VehicleCode,  ItCode, BoxQty, ShortQty, ProcessCode, RejCode, NatureCode, Weight, WeightPer, LabourRate, Hours, FurnaceTonnage, CHNo, CiRate, DiRate, BreakDownMin, Remark2, Qty, Remark1, Remark3,Rate, Amt, TaxableAmt, CGstAmt, SGstAmt, IGstAmt, NetAmt, EntryNo, DeptCode, YearCode, CompCode, USERID, ComputerID)
     SELECT
-    TrDate,Flag, SubAccode, EmpCode, PONo, PODate, DCNo,  CiHeats, DiHeats, VehicleCode,  ItCode, BoxQty, ShortQty, ProcessCode, RejCode, NatureCode, Weight, LabourRate, Hours, FurnaceTonnage, CHNo, CiRate, DiRate, BreakDownMin, Remark2, Qty, Remark1, Remark3, Rate, Amt, TaxableAmt, CGstAmt, SGstAmt, IGstAmt, NetAmt
+    TrDate,Flag, SubAccode, EmpCode, PONo, PODate, DCNo,  CiHeats, DiHeats, VehicleCode,  ItCode, BoxQty, ShortQty, ProcessCode, RejCode, NatureCode, Weight, WeightPer, LabourRate, Hours, FurnaceTonnage, CHNo, CiRate, DiRate, BreakDownMin, Remark2, Qty, Remark1, Remark3, Rate, Amt, TaxableAmt, CGstAmt, SGstAmt, IGstAmt, NetAmt
      ,'${operation === 'update' ? entryNo : maxEntryNo + 1}', DeptCode, YearCode, CompCode, USERID, COMPUTERID
      FROM ProcessEntryTemp;
 
