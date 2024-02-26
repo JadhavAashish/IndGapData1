@@ -4741,8 +4741,8 @@ app.put('/api/processtemp/:entryNo/:flag/:uniqueCode', (req, res) => {
 
 
 // Delete Entry API
-app.delete('/api/processtemp/:EntryNo/:Flag', async (req, res) => {
-  const { EntryNo, Flag, CompCode } = req.params;
+app.delete('/api/processtemp/:EntryNo/:Flag/:uniqueid', async (req, res) => {
+  const { EntryNo, Flag, uniqueid } = req.params;
   const UserName = req.headers['username'];
 
   try {
@@ -4765,7 +4765,7 @@ app.delete('/api/processtemp/:EntryNo/:Flag', async (req, res) => {
 
         if (AllowEntryDelete === 1) {
           // The user has permission to delete entries
-          const deleteQuery = `DELETE FROM ProcessEntryTemp WHERE EntryNo='${EntryNo}' AND Flag='${Flag}' AND ComputerID='${CompCode}'`;
+          const deleteQuery = `DELETE FROM ProcessEntryTemp WHERE EntryNo='${EntryNo}' AND Flag='${Flag}' AND ComputerID='${uniqueid}'`;
 
           sql.query(deleteQuery, (deleteErr) => {
             if (deleteErr) {
@@ -4930,7 +4930,7 @@ app.post('/api/insertDataAndFlag', (req, res) => {
 
 //Update ProcessEntry
  app.post('/api/SaveDistProcessEntries', async (req, res) => {
-  const { flag, DeptCode, YearCode, CompCode, trDate, SubAccode, PONo, PODate, CIHeats, DIHeats, CIRate, DIRate, VehicleCode, EmpCode, DCNo, ChNo, BreakDownMin, Remark2, NatureCode, FurnaceTonnage, Hours, operation, entryNo, ItCode, Qty, ShortQty, Remark1, Boxes, Weight, RejCode, ProcessCode, LabourRate, USERID} = req.body; 
+  const { flag, DeptCode, YearCode, CompCode, trDate, SubAccode, PONo, PODate, CIHeats, DIHeats, CIRate, DIRate, VehicleCode, EmpCode, DCNo, ChNo, BreakDownMin, Remark2, NatureCode, FurnaceTonnage, Hours, operation, entryNo, ItCode, Qty, ShortQty, Remark1, Remark3, Boxes, Weight, RejCode, ProcessCode, LabourRate, USERID} = req.body; 
   // Get the latest max entry number for the given flag
   const getMaxEntryNoQuery = `
     SELECT MAX(EntryNo) AS MaxEntryNo
@@ -4950,7 +4950,7 @@ app.post('/api/insertDataAndFlag', (req, res) => {
 
     INSERT INTO ProcessEntry (TrDate, Flag, SubAccode, EmpCode, PONo, PODate, DCNo, CiHeats, DiHeats, VehicleCode,  ItCode, BoxQty, ShortQty, ProcessCode, RejCode, NatureCode, Weight, WeightPer, LabourRate, Hours, FurnaceTonnage, CHNo, CiRate, DiRate, BreakDownMin, Remark2, Qty, Remark1, Remark3,Rate, Amt, TaxableAmt, CGstAmt, SGstAmt, IGstAmt, NetAmt, EntryNo, DeptCode, YearCode, CompCode, USERID, ComputerID)
     SELECT
-    TrDate,Flag, SubAccode, EmpCode, PONo, PODate, DCNo,  CiHeats, DiHeats, VehicleCode,  ItCode, BoxQty, ShortQty, ProcessCode, RejCode, NatureCode, Weight, WeightPer, LabourRate, Hours, FurnaceTonnage, CHNo, CiRate, DiRate, BreakDownMin, Remark2, Qty, Remark1, Remark3, Rate, Amt, TaxableAmt, CGstAmt, SGstAmt, IGstAmt, NetAmt
+    '${trDate}',Flag, ${SubAccode}, ${EmpCode}, '${PONo}', '${PODate}', '${DCNo}',  '${CIHeats}', '${DIHeats}', '${VehicleCode}',  ItCode, BoxQty, ShortQty, ProcessCode, RejCode, NatureCode, Weight, WeightPer, LabourRate, ${Hours}, ${FurnaceTonnage}, CHNo, ${CIRate}, ${DIRate}, ${BreakDownMin}, '${Remark2}', Qty, Remark1, '${Remark3}', Rate, Amt, TaxableAmt, CGstAmt, SGstAmt, IGstAmt, NetAmt
      ,'${operation === 'update' ? entryNo : maxEntryNo + 1}', DeptCode, YearCode, CompCode, USERID, COMPUTERID
      FROM ProcessEntryTemp;
 
