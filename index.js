@@ -3321,6 +3321,65 @@ app.delete('/api/subledgergroups/:subledgergroupId', async (req, res) => {
     }
   });
 
+  //for ProcessEntry Reports
+
+  app.get('/api/PurchaseOrderRegister', (req, res) => {
+    const { subledgerCode, startDate, endDate, flag } = req.query;
+    
+    // Update the query to select from ProcessEntry table with additional conditions
+    const query = `
+        SELECT * 
+        FROM ProcessEntry 
+        WHERE SubAccode = @SubAccode 
+        AND flag = @Flag 
+        AND Trdate >= @StartDate 
+        AND Trdate <= @EndDate;
+    `;
+  
+    const request = new sql.Request();
+    request.input('SubAccode', sql.Int, subledgerCode);
+    request.input('StartDate', sql.NVarChar, startDate); // Assuming startDate is provided in the request
+    request.input('EndDate', sql.NVarChar, endDate);
+    request.input('Flag', sql.NVarChar, flag);
+  
+    request.query(query, (err, result) => {
+        if (err) {
+            console.log('Error:', err);
+            res.status(500).json({ error: 'Internal server error' });
+        } else {
+            res.json(result.recordset);
+        }
+    });
+});
+
+app.get('/api/ProductionRegisterDatewise', (req, res) => {
+  const { subledgerCode, startDate, endDate, flag } = req.query;
+  
+  // Update the query to select from ProcessEntry table with additional conditions
+  const query = `
+      SELECT * 
+      FROM ProcessEntry 
+      WHERE SubAccode = @SubAccode 
+      AND flag = @Flag 
+      AND Trdate >= @StartDate 
+      AND Trdate <= @EndDate;
+  `;
+
+  const request = new sql.Request();
+  request.input('SubAccode', sql.Int, subledgerCode);
+  request.input('StartDate', sql.NVarChar, startDate); // Assuming startDate is provided in the request
+  request.input('EndDate', sql.NVarChar, endDate);
+  request.input('Flag', sql.NVarChar, flag);
+
+  request.query(query, (err, result) => {
+      if (err) {
+          console.log('Error:', err);
+          res.status(500).json({ error: 'Internal server error' });
+      } else {
+          res.json(result.recordset);
+      }
+  });
+});
 
 
 //Trai-Balance report ------------------------------------------------------------------------------------
@@ -4473,6 +4532,7 @@ app.post('/api/processtemp', (req, res) => {
     LabourRate,
     FurnaceTonnage,
     Hours,
+    StatusCode,
     CIRate,
     DIRate,
     BreakDownMin,
@@ -4537,7 +4597,8 @@ app.post('/api/processtemp', (req, res) => {
     CompCode,
     UserID,
     uniqueCode
-  }); 
+  });
+  
   const query = `
     INSERT INTO ProcessEntryTemp (
       Flag,
@@ -4577,6 +4638,7 @@ app.post('/api/processtemp', (req, res) => {
       NetAmt,
       Remark1,
       Remark3,
+      StatusCode,
       ComputerID,
       DeptCode,
       YearCode,
@@ -4621,6 +4683,7 @@ app.post('/api/processtemp', (req, res) => {
       '${NetAmt}',
       N'${Remark1}',
       '${Remark3}',
+      '${StatusCode}',
       '${uniqueCode}',
       '${DeptCode}',
       '${YearCode}',
@@ -4671,6 +4734,7 @@ app.put('/api/processtemp/:entryNo/:flag/:uniqueCode', (req, res) => {
     LabourRate,
     FurnaceTonnage,
     Hours,
+    StatusCode,
     Rate,
     Amt,
     TaxableAmt,
@@ -4722,6 +4786,7 @@ app.put('/api/processtemp/:entryNo/:flag/:uniqueCode', (req, res) => {
       NetAmt = '${NetAmt}',
       Remark1 = N'${Remark1}',
       Remark3 = '${Remark3}',
+      StatusCode = '${StatusCode}',
       DeptCode = '${DeptCode}',
       YearCode = '${YearCode}',
       CompCode = '${CompCode}',
@@ -4863,8 +4928,8 @@ app.post('/api/SaveProcessentries', async (req, res) => {
     WHERE PE.EntryNo = ${operation === 'update' ? entryNo : maxEntryNo + 1} AND PE.Flag = '${flag}' AND PE.DeptCode = '${DeptCode}' AND PE.YearCode = '${YearCode}'  AND PE.CompCode = '${CompCode}';
 
 
-    INSERT INTO ProcessEntry (EntryNo, TrDate, Flag, SubAccode, EmpCode, PONo, PODate, DCNo, CiHeats, DiHeats, VehicleCode, DeptCode, ItCode, BoxQty, ShortQty, ProcessCode, RejCode, NatureCode, Weight, WeightPer, LabourRate, Hours, FurnaceTonnage, CHNo, CiRate, DiRate, BreakDownMin, Remark2, Qty, Remark1, Remark3, Rate, Amt, TaxableAmt, CGstAmt, SGstAmt, IGstAmt, NetAmt, YearCode, CompCode, USERID, ComputerID)
-    SELECT ${operation === 'update' ? entryNo : maxEntryNo + 1},  TrDate, Flag, SubAccode, EmpCode, PONo, PODate, DCNo, CiHeats, DiHeats, VehicleCode, DeptCode, ItCode, BoxQty, ShortQty, ProcessCode, RejCode, NatureCode, Weight, WeightPer, LabourRate, Hours, FurnaceTonnage, CHNo, CiRate, DiRate, BreakDownMin, Remark2, Qty, Remark1, Remark3, Rate, Amt, TaxableAmt, CGstAmt, SGstAmt, IGstAmt, NetAmt, YearCode, CompCode, USERID, ComputerID FROM ProcessEntryTemp;
+    INSERT INTO ProcessEntry (EntryNo, TrDate, Flag, SubAccode, EmpCode, PONo, PODate, DCNo, CiHeats, DiHeats, VehicleCode, DeptCode, ItCode, BoxQty, ShortQty, ProcessCode, RejCode, NatureCode, Weight, WeightPer, LabourRate, Hours, StatusCode, FurnaceTonnage, CHNo, CiRate, DiRate, BreakDownMin, Remark2, Qty, Remark1, Remark3, Rate, Amt, TaxableAmt, CGstAmt, SGstAmt, IGstAmt, NetAmt, YearCode, CompCode, USERID, ComputerID)
+    SELECT ${operation === 'update' ? entryNo : maxEntryNo + 1},  TrDate, Flag, SubAccode, EmpCode, PONo, PODate, DCNo, CiHeats, DiHeats, VehicleCode, DeptCode, ItCode, BoxQty, ShortQty, ProcessCode, RejCode, NatureCode, Weight, WeightPer, LabourRate, Hours, StatusCode, FurnaceTonnage, CHNo, CiRate, DiRate, BreakDownMin, Remark2, Qty, Remark1, Remark3, Rate, Amt, TaxableAmt, CGstAmt, SGstAmt, IGstAmt, NetAmt, YearCode, CompCode, USERID, ComputerID FROM ProcessEntryTemp;
 
     DELETE PET
     FROM ProcessEntryTemp AS PET
@@ -4905,8 +4970,8 @@ app.post('/api/insertDataAndFlag', (req, res) => {
     DELETE FROM ProcessEntryTemp;
 
     
-    INSERT INTO ProcessEntryTemp (flag, EntryNo, TrDate, SubAccode, EmpCode, PONo, PODate, DCNo, CiHeats, DiHeats, VehicleCode, DeptCode, ItCode, BoxQty, ShortQty, ProcessCode, RejCode, NatureCode, Weight, WeightPer, LabourRate, Hours, FurnaceTonnage, CHNo, CiRate, DiRate, BreakDownMin, Remark2, Qty, Remark1, Remark3, Rate, Amt, TaxableAmt, CGstAmt, SGstAmt, IGstAmt, NetAmt, YearCode, CompCode, USERID, ComputerID)
-    SELECT flag, EntryNo, TrDate, SubAccode, EmpCode, PONo, PODate, DCNo, CiHeats, DiHeats, VehicleCode, DeptCode, ItCode, BoxQty, ShortQty, ProcessCode, RejCode, NatureCode, Weight, WeightPer, LabourRate, Hours, FurnaceTonnage, CHNo, CiRate, DiRate, BreakDownMin, Remark2, Qty, Remark1, Remark3, Rate, Amt, TaxableAmt, CGstAmt, SGstAmt, IGstAmt, NetAmt, YearCode, CompCode, USERID, ComputerID
+    INSERT INTO ProcessEntryTemp (flag, EntryNo, TrDate, SubAccode, EmpCode, PONo, PODate, DCNo, CiHeats, DiHeats, VehicleCode, DeptCode, ItCode, BoxQty, ShortQty, ProcessCode, RejCode, NatureCode, Weight, WeightPer, LabourRate, Hours, FurnaceTonnage, CHNo, CiRate, DiRate, BreakDownMin, Remark2, Qty, Remark1, Remark3, StatusCode, Rate, Amt, TaxableAmt, CGstAmt, SGstAmt, IGstAmt, NetAmt, YearCode, CompCode, USERID, ComputerID)
+    SELECT flag, EntryNo, TrDate, SubAccode, EmpCode, PONo, PODate, DCNo, CiHeats, DiHeats, VehicleCode, DeptCode, ItCode, BoxQty, ShortQty, ProcessCode, RejCode, NatureCode, Weight, WeightPer, LabourRate, Hours, FurnaceTonnage, CHNo, CiRate, DiRate, BreakDownMin, Remark2, Qty, Remark1, Remark3, StatusCode, Rate, Amt, TaxableAmt, CGstAmt, SGstAmt, IGstAmt, NetAmt, YearCode, CompCode, USERID, ComputerID
     FROM ProcessEntry
     WHERE EntryNo = @entryNo AND Flag = @flag AND DeptCode = @DeptCode  AND YearCode = @YearCode  AND CompCode = @CompCode;
   `;
@@ -4930,7 +4995,7 @@ app.post('/api/insertDataAndFlag', (req, res) => {
 
 //Update ProcessEntry
  app.post('/api/SaveDistProcessEntries', async (req, res) => {
-  const { flag, DeptCode, YearCode, CompCode, trDate, SubAccode, PONo, PODate, CIHeats, DIHeats, CIRate, DIRate, VehicleCode, EmpCode, DCNo, ChNo, BreakDownMin, Remark2, NatureCode, FurnaceTonnage, Hours, operation, entryNo, ItCode, Qty, ShortQty, Remark1, Remark3, Boxes, Weight, RejCode, ProcessCode, LabourRate, USERID} = req.body; 
+  const { flag, DeptCode, YearCode, CompCode, trDate, SubAccode, PONo, PODate, CIHeats, DIHeats, CIRate, DIRate, VehicleCode, EmpCode, DCNo, ChNo, BreakDownMin, Remark2, NatureCode, FurnaceTonnage, Hours, operation, entryNo, ItCode, Qty, ShortQty, Remark1, Remark3, Boxes, Weight, RejCode, ProcessCode, LabourRate, StatusCode, USERID} = req.body; 
   // Get the latest max entry number for the given flag
   const getMaxEntryNoQuery = `
     SELECT MAX(EntryNo) AS MaxEntryNo
@@ -4948,9 +5013,9 @@ app.post('/api/insertDataAndFlag', (req, res) => {
     FROM ProcessEntry AS PE
     WHERE PE.EntryNo = '${operation === 'update' ? entryNo : maxEntryNo + 1}' AND PE.Flag = '${flag}' AND PE.DeptCode = '${DeptCode}' AND PE.YearCode = '${YearCode}' AND PE.CompCode = '${CompCode}';
 
-    INSERT INTO ProcessEntry (TrDate, Flag, SubAccode, EmpCode, PONo, PODate, DCNo, CiHeats, DiHeats, VehicleCode,  ItCode, BoxQty, ShortQty, ProcessCode, RejCode, NatureCode, Weight, WeightPer, LabourRate, Hours, FurnaceTonnage, CHNo, CiRate, DiRate, BreakDownMin, Remark2, Qty, Remark1, Remark3,Rate, Amt, TaxableAmt, CGstAmt, SGstAmt, IGstAmt, NetAmt, EntryNo, DeptCode, YearCode, CompCode, USERID, ComputerID)
+    INSERT INTO ProcessEntry (TrDate, Flag, SubAccode, EmpCode, PONo, PODate, DCNo, CiHeats, DiHeats, VehicleCode,  ItCode, BoxQty, ShortQty, ProcessCode, RejCode, NatureCode, Weight, WeightPer, LabourRate, Hours, FurnaceTonnage, StatusCode, CHNo, CiRate, DiRate, BreakDownMin, Remark2, Qty, Remark1, Remark3,Rate, Amt, TaxableAmt, CGstAmt, SGstAmt, IGstAmt, NetAmt, EntryNo, DeptCode, YearCode, CompCode, USERID, ComputerID)
     SELECT
-    '${trDate}',Flag, ${SubAccode}, ${EmpCode}, '${PONo}', '${PODate}', '${DCNo}',  '${CIHeats}', '${DIHeats}', '${VehicleCode}',  ItCode, BoxQty, ShortQty, ProcessCode, RejCode, NatureCode, Weight, WeightPer, LabourRate, ${Hours}, ${FurnaceTonnage}, CHNo, ${CIRate}, ${DIRate}, ${BreakDownMin}, '${Remark2}', Qty, Remark1, '${Remark3}', Rate, Amt, TaxableAmt, CGstAmt, SGstAmt, IGstAmt, NetAmt
+    '${trDate}',Flag, ${SubAccode}, ${EmpCode}, '${PONo}', '${PODate}', '${DCNo}',  '${CIHeats}', '${DIHeats}', '${VehicleCode}',  ItCode, BoxQty, ShortQty, ProcessCode, RejCode, NatureCode, Weight, WeightPer, LabourRate, ${Hours}, ${FurnaceTonnage}, '${StatusCode}', CHNo, ${CIRate}, ${DIRate}, ${BreakDownMin}, '${Remark2}', Qty, Remark1, '${Remark3}', Rate, Amt, TaxableAmt, CGstAmt, SGstAmt, IGstAmt, NetAmt
      ,'${operation === 'update' ? entryNo : maxEntryNo + 1}', DeptCode, YearCode, CompCode, USERID, COMPUTERID
      FROM ProcessEntryTemp;
 
@@ -4971,6 +5036,225 @@ app.post('/api/insertDataAndFlag', (req, res) => {
 
 
 
+//For ItemRateChartMaster
+// GET all ItemRateChartMaster entries
+app.get('/api/ratechart', (req, res) => {
+  const query = 'SELECT * FROM ItemRateChartMaster';
+  sql.query(query, (err, result) => {
+    if (err) {
+      console.log('Error:', err);
+      res.status(500).json({ error: 'Internal server error' });
+    } else {
+      res.json(result.recordset);
+    }
+  });
+});
+
+// POST a new ItemRateChartMaster entry
+app.post('/api/ratechart', (req, res) => {
+  const { ItemCode, ItemName, ItemDesc, Rate, Remark1, UserID } = req.body;
+  const query = `
+    INSERT INTO ItemRateChartMaster (ItemCode, ItemName, ItemDesc, Rate, Remark1, UserID)
+    VALUES ('${ItemCode}', '${ItemName}', '${ItemDesc}', ${Rate}, '${Remark1}', '${UserID}');
+  `;
+  sql.query(query, (err) => {
+    if (err) {
+      console.log('Error:', err);
+      res.status(500).json({ error: 'Internal server error' });
+    } else {
+      res.json({ message: 'ItemRateChartMaster entry created successfully' });
+    }
+  });
+});
+
+// PUT update an existing ItemRateChartMaster entry
+app.put('/api/ratechart/:ItemCode', (req, res) => {
+  const { ItemCode } = req.params;
+  const { ItemName, ItemDesc, Rate, Remark1, UserID } = req.body;
+  const query = `
+    UPDATE ItemRateChartMaster
+    SET ItemName='${ItemName}', ItemDesc='${ItemDesc}', Rate=${Rate}, Remark1=N'${Remark1}', UserID='${UserID}'
+    WHERE ItemCode='${ItemCode}';
+  `;
+  sql.query(query, (err, result) => {
+    if (err) {
+      console.log('Error:', err);
+      res.status(500).json({ error: 'Internal server error' });
+    } else {
+      if (result.rowsAffected && result.rowsAffected[0] > 0) {
+        res.json({
+          message: 'ItemRateChartMaster entry updated successfully',
+          ItemCode: ItemCode,
+          ItemName,
+          ItemDesc,
+          Rate,
+          Remark1,
+          UserID,
+        });
+      } else {
+        res.status(404).json({ error: 'Record not found' });
+      }
+    }
+  });
+});
+
+// DELETE a ItemRateChartMaster entry
+app.delete('/api/ratechart/:ItemCode', async (req, res) => {
+  const { ItemCode } = req.params;
+  const UserName = req.headers['username'];
+
+  try {
+    // Fetch user permissions from the database based on the user making the request
+    const userPermissionsQuery = `SELECT AllowMasterDelete FROM Users WHERE UserName='${UserName}'`;
+
+    sql.query(userPermissionsQuery, async (userErr, userResults) => {
+      if (userErr) {
+        console.log('Error fetching user permissions:', userErr);
+        res.status(500).json({ error: 'Internal server error' });
+        return;
+      }
+
+      // Check if user results are not empty
+      if (userResults.recordset && userResults.recordset.length > 0) {
+        // Check if user has permission to delete entries
+        const { AllowMasterDelete } = userResults.recordset[0];
+
+        if (AllowMasterDelete === 1) {
+          // The user has permission to delete entries
+          const deleteQuery = `DELETE FROM ItemRateChartMaster WHERE ItemCode='${ItemCode}'`;
+
+          sql.query(deleteQuery, (deleteErr) => {
+            if (deleteErr) {
+              console.log('Error deleting entry:', deleteErr);
+              res.status(500).json({ error: 'Internal server error' });
+            } else {
+              res.json({ message: 'ItemRateChartMaster entry deleted successfully' });
+            }
+          });
+        } else {
+          // User does not have permission to delete entries
+          res.status(403).json({ error: 'Permission denied. You do not have the necessary permissions to delete entries.' });
+        }
+      } else {
+        // User not found in the database
+        res.status(404).json({ error: 'User not found.' });
+      }
+    });
+  } catch (error) {
+    console.error('Error:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+
+// For YojanaMaster------------------------------------------------------------------------------------
+// GET all Yojana entries
+app.get('/api/yojana', (req, res) => {
+  const query = 'SELECT * FROM YojanaMaster';
+  sql.query(query, (err, result) => {
+    if (err) {
+      console.log('Error:', err);
+      res.status(500).json({ error: 'Internal server error' });
+    } else {
+      res.json(result.recordset);
+    }
+  });
+});
+
+// POST a new Yojana entry
+app.post('/api/yojana', (req, res) => {
+  const { YojanaCode, YojanaName, YojanaNameEng, Remark1, UserID } = req.body;
+  const query = `
+    INSERT INTO YojanaMaster (YojanaCode, YojanaName, YojanaNameEng, Remark1, UserID)
+    VALUES ('${YojanaCode}', N'${YojanaName}', '${YojanaNameEng}', '${Remark1}', '${UserID}');
+  `;
+  sql.query(query, (err) => {
+    if (err) {
+      console.log('Error:', err);
+      res.status(500).json({ error: 'Internal server error' });
+    } else {
+      res.json({ message: 'Yojana entry created successfully' });
+    }
+  });
+});
+
+// PUT update an existing Yojana entry
+app.put('/api/yojana/:YojanaCode', (req, res) => {
+  const { YojanaCode } = req.params;
+  const { YojanaName, YojanaNameEng, Remark1, UserID } = req.body;
+  const query = `
+    UPDATE YojanaMaster
+    SET YojanaName=N'${YojanaName}', YojanaNameEng='${YojanaNameEng}', Remark1='${Remark1}', UserID='${UserID}'
+    WHERE YojanaCode='${YojanaCode}';
+  `;
+  sql.query(query, (err, result) => {
+    if (err) {
+      console.log('Error:', err);
+      res.status(500).json({ error: 'Internal server error' });
+    } else {
+      if (result.rowsAffected && result.rowsAffected[0] > 0) {
+        res.json({
+          message: 'Yojana entry updated successfully',
+          YojanaCode,
+          YojanaName,
+          YojanaNameEng,
+          Remark1,
+          UserID,
+        });
+      } else {
+        res.status(404).json({ error: 'Record not found' });
+      }
+    }
+  });
+});
+
+// DELETE a Yojana entry
+app.delete('/api/yojana/:YojanaCode', async (req, res) => {
+  const { YojanaCode } = req.params;
+  const UserName = req.headers['username'];
+
+  try {
+    // Fetch user permissions from the database based on the user making the request
+    const userPermissionsQuery = `SELECT AllowMasterDelete FROM Users WHERE UserName='${UserName}'`;
+
+    sql.query(userPermissionsQuery, async (userErr, userResults) => {
+      if (userErr) {
+        console.log('Error fetching user permissions:', userErr);
+        res.status(500).json({ error: 'Internal server error' });
+        return;
+      }
+
+      // Check if user results are not empty
+      if (userResults.recordset && userResults.recordset.length > 0) {
+        // Check if user has permission to delete entries
+        const { AllowMasterDelete } = userResults.recordset[0];
+
+        if (AllowMasterDelete === 1) {
+          // The user has permission to delete entries
+          const deleteQuery = `DELETE FROM YojanaMaster WHERE YojanaCode='${YojanaCode}'`;
+
+          sql.query(deleteQuery, (deleteErr) => {
+            if (deleteErr) {
+              console.log('Error deleting entry:', deleteErr);
+              res.status(500).json({ error: 'Internal server error' });
+            } else {
+              res.json({ message: 'Yojana entry deleted successfully' });
+            }
+          });
+        } else {
+          // User does not have permission to delete entries
+          res.status(403).json({ error: 'Permission denied. You do not have the necessary permissions to delete entries.' });
+        }
+      } else {
+        // User not found in the database
+        res.status(404).json({ error: 'User not found.' });
+      }
+    });
+  } catch (error) {
+    console.error('Error:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
 
 
 
