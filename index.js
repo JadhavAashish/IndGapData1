@@ -3330,12 +3330,12 @@ app.delete('/api/subledgergroups/:subledgergroupId', async (req, res) => {
     const query = `
         SELECT * 
         FROM ProcessEntry 
-        WHERE SubAccode = @SubAccode 
-        AND flag = @Flag 
+        WHERE Flag = @Flag 
         AND Trdate >= @StartDate 
         AND Trdate <= @EndDate;
-    `;
-  
+        `;
+        
+        // AND SubAccode = @SubAccode 
     const request = new sql.Request();
     request.input('SubAccode', sql.Int, subledgerCode);
     request.input('StartDate', sql.NVarChar, startDate); // Assuming startDate is provided in the request
@@ -3359,12 +3359,242 @@ app.get('/api/ProductionRegisterDatewise', (req, res) => {
   const query = `
       SELECT * 
       FROM ProcessEntry 
-      WHERE SubAccode = @SubAccode 
-      AND flag = @Flag 
+      WHERE Flag = @Flag 
       AND Trdate >= @StartDate 
       AND Trdate <= @EndDate;
-  `;
+      `;
+      // AND SubAccode = @SubAccode;
+      
+  const request = new sql.Request();
+  request.input('SubAccode', sql.Int, subledgerCode);
+  request.input('StartDate', sql.NVarChar, startDate); // Assuming startDate is provided in the request
+  request.input('EndDate', sql.NVarChar, endDate);
+  request.input('Flag', sql.NVarChar, flag);
 
+  request.query(query, (err, result) => {
+      if (err) {
+          console.log('Error:', err);
+          res.status(500).json({ error: 'Internal server error' });
+      } else {
+          res.json(result.recordset);
+      }
+  });
+});
+
+app.get('/api/SalesRegister', (req, res) => {
+  const { subledgerCode, startDate, endDate, flag } = req.query;
+  
+  // Update the query to select from ProcessEntry table with additional conditions
+  const query = `
+      SELECT * 
+      FROM ProcessEntry 
+      WHERE Flag = @Flag 
+      AND Trdate >= @StartDate 
+      AND Trdate <= @EndDate;
+      `;
+      
+      // AND SubAccode = @SubAccode 
+  const request = new sql.Request();
+  request.input('SubAccode', sql.Int, subledgerCode);
+  request.input('StartDate', sql.NVarChar, startDate); // Assuming startDate is provided in the request
+  request.input('EndDate', sql.NVarChar, endDate);
+  request.input('Flag', sql.NVarChar, flag);
+
+  request.query(query, (err, result) => {
+      if (err) {
+          console.log('Error:', err);
+          res.status(500).json({ error: 'Internal server error' });
+      } else {
+          res.json(result.recordset);
+      }
+  });
+});
+
+app.get('/api/IstRejectionRegisterDatewise', (req, res) => {
+  const { subledgerCode, startDate, endDate, flag } = req.query;
+  
+  // Update the query to select from ProcessEntry table with additional conditions
+  const query = `
+      SELECT * 
+      FROM ProcessEntry 
+      WHERE Flag = @Flag 
+      AND Trdate >= @StartDate 
+      AND Trdate <= @EndDate;
+      `;
+      
+      // AND SubAccode = @SubAccode 
+  const request = new sql.Request();
+  request.input('SubAccode', sql.Int, subledgerCode);
+  request.input('StartDate', sql.NVarChar, startDate); // Assuming startDate is provided in the request
+  request.input('EndDate', sql.NVarChar, endDate);
+  request.input('Flag', sql.NVarChar, flag);
+
+  request.query(query, (err, result) => {
+      if (err) {
+          console.log('Error:', err);
+          res.status(500).json({ error: 'Internal server error' });
+      } else {
+          res.json(result.recordset);
+      }
+  });
+});
+
+app.get('/api/IstRejectionRegisterItemwise', (req, res) => {
+  const { itemCode, startDate, endDate, flag } = req.query;
+  
+  // Update the query to select from ProcessEntry table with additional conditions
+  const query = `
+      SELECT * 
+      FROM ProcessEntry 
+      WHERE ItCode = @ItCode
+      AND Flag = @Flag 
+      AND Trdate >= @StartDate 
+      AND Trdate <= @EndDate;
+      `;
+
+      // AND SubAccode = @SubAccode 
+  const request = new sql.Request();
+  request.input('ItCode', sql.Int, itemCode);
+  request.input('StartDate', sql.NVarChar, startDate); // Assuming startDate is provided in the request
+  request.input('EndDate', sql.NVarChar, endDate);
+  request.input('Flag', sql.NVarChar, flag);
+
+  request.query(query, (err, result) => {
+      if (err) {
+          console.log('Error:', err);
+          res.status(500).json({ error: 'Internal server error' });
+      } else {
+          res.json(result.recordset);
+      }
+  });
+});
+
+app.get('/api/IIndRejectionRegister', (req, res) => {
+  const { subledgerCode, startDate, endDate, flag } = req.query;
+  
+  // Update the query to select from ProcessEntry table with additional conditions
+  const query = `
+      SELECT * 
+      FROM ProcessEntry 
+      WHERE Flag = @Flag 
+      AND Trdate >= @StartDate 
+      AND Trdate <= @EndDate;
+      `;
+      
+      // AND SubAccode = @SubAccode 
+  const request = new sql.Request();
+  request.input('SubAccode', sql.Int, subledgerCode);
+  request.input('StartDate', sql.NVarChar, startDate); // Assuming startDate is provided in the request
+  request.input('EndDate', sql.NVarChar, endDate);
+  request.input('Flag', sql.NVarChar, flag);
+
+  request.query(query, (err, result) => {
+      if (err) {
+          console.log('Error:', err);
+          res.status(500).json({ error: 'Internal server error' });
+      } else {
+          res.json(result.recordset);
+      }
+  });
+});
+
+app.get('/api/IIIrdRejectionRegister', (req, res) => {
+  const { subledgerCode, startDate, endDate, flag } = req.query;
+  
+  // Update the query to select from ProcessEntry table with additional conditions
+  const query = `
+      SELECT * 
+      FROM ProcessEntry 
+      WHERE Flag = @Flag 
+      AND Trdate >= @StartDate 
+      AND Trdate <= @EndDate;
+      `;
+      
+      // AND SubAccode = @SubAccode 
+  const request = new sql.Request();
+  request.input('SubAccode', sql.Int, subledgerCode);
+  request.input('StartDate', sql.NVarChar, startDate); // Assuming startDate is provided in the request
+  request.input('EndDate', sql.NVarChar, endDate);
+  request.input('Flag', sql.NVarChar, flag);
+
+  request.query(query, (err, result) => {
+      if (err) {
+          console.log('Error:', err);
+          res.status(500).json({ error: 'Internal server error' });
+      } else {
+          res.json(result.recordset);
+      }
+  });
+});
+
+app.get('/api/OutwardRegister', (req, res) => {
+  const { subledgerCode, startDate, endDate, flag } = req.query;
+  
+  // Update the query to select from ProcessEntry table with additional conditions
+  const query = `
+      SELECT * 
+      FROM ProcessEntry 
+      WHERE Flag = @Flag 
+      AND Trdate >= @StartDate 
+      AND Trdate <= @EndDate;
+      `;
+      
+      // AND SubAccode = @SubAccode 
+  const request = new sql.Request();
+  request.input('SubAccode', sql.Int, subledgerCode);
+  request.input('StartDate', sql.NVarChar, startDate); // Assuming startDate is provided in the request
+  request.input('EndDate', sql.NVarChar, endDate);
+  request.input('Flag', sql.NVarChar, flag);
+
+  request.query(query, (err, result) => {
+      if (err) {
+          console.log('Error:', err);
+          res.status(500).json({ error: 'Internal server error' });
+      } else {
+          res.json(result.recordset);
+      }
+  });
+});
+
+app.get('/api/InwardRegister', (req, res) => {
+  const { subledgerCode, startDate, endDate, flag } = req.query;
+  
+  // Update the query to select from ProcessEntry table with additional conditions
+  const query = `
+      SELECT * 
+      FROM ProcessEntry 
+      WHERE Flag = @Flag 
+      AND Trdate >= @StartDate 
+      AND Trdate <= @EndDate;
+      `;
+      
+      // AND SubAccode = @SubAccode 
+  const request = new sql.Request();
+  request.input('SubAccode', sql.Int, subledgerCode);
+  request.input('StartDate', sql.NVarChar, startDate); // Assuming startDate is provided in the request
+  request.input('EndDate', sql.NVarChar, endDate);
+  request.input('Flag', sql.NVarChar, flag);
+
+  request.query(query, (err, result) => {
+      if (err) {
+          console.log('Error:', err);
+          res.status(500).json({ error: 'Internal server error' });
+      } else {
+          res.json(result.recordset);
+      }
+  });
+});
+
+app.get('/api/PendingPurchaseOrderRegister', (req, res) => {
+  const { subledgerCode, startDate, endDate, flag } = req.query;
+  
+  // Update the query to select from ProcessEntry table with additional conditions
+  const query = `
+      SELECT * 
+      FROM ViewPoPendingRegister
+      `;
+      
+      // AND SubAccode = @SubAccode 
   const request = new sql.Request();
   request.input('SubAccode', sql.Int, subledgerCode);
   request.input('StartDate', sql.NVarChar, startDate); // Assuming startDate is provided in the request
