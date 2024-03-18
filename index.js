@@ -3768,7 +3768,7 @@ app.get('/api/PartyStockLedger', (req, res) => {
     FROM ViewSubContractorsBal
 
     DELETE FROM ProcessEntryReport
-    WHERE TrDate <= @StartDate AND TrDate >= @EndDate
+    WHERE TrDate <= @StartDate OR TrDate >= @EndDate
 
     SELECT * FROM ProcessEntryReport WHERE TrDate >= @StartDate AND TrDate <= @EndDate
     `;
@@ -3784,6 +3784,85 @@ app.get('/api/PartyStockLedger', (req, res) => {
     query += ' AND ItCode = @ItCode';
     request.input('ItCode', sql.Int, itemCode);
   }
+
+  request.input('StartDate', sql.NVarChar, startDate);
+  request.input('EndDate', sql.NVarChar, endDate);
+
+  request.query(query, (err, result) => {
+    if (err) {
+      console.log('Error:', err);
+      res.status(500).json({ error: 'Internal server error' });
+    } else {
+      res.json(result.recordset);
+    }
+  });
+});
+
+
+//Rejection Sheet 
+
+app.get('/api/RejectionSheet', (req, res) => {
+  const { subledgerCode, itemCode, startDate, endDate, flag } = req.query;
+
+  // Update the query to select from ViewAllEntries table with additional conditions
+  let query = `
+        SELECT 
+            Itcode,
+            SUM(ProdQty) AS ProdQty,
+            SUM(SentQty) AS SentQty,
+            SUM(RecdQty) AS RecdQty,
+            SUM(SalesQty) AS SalesQty,
+            SUM(IREJ) AS IREJ,
+            SUM(IIREJ) AS IIREJ,
+            SUM(IIIREJ) AS IIIREJ,
+            SUM(IREJ) + SUM(IIREJ) + SUM(IIIREJ) AS TotREJ,
+            ROUND((SUM(IREJ) / (SUM(ProdQty) + 0.001)) * 100, 2) AS Iper,
+            ROUND((SUM(IIREJ) / (SUM(ProdQty) + 0.001)) * 100, 2) AS IIper,
+            ROUND((SUM(IIIREJ) / (SUM(ProdQty) + 0.001)) * 100, 2) AS IIIper,
+            ROUND(((SUM(ProdQty)) / (SUM(IREJ) + 0.0001 + SUM(IIREJ) + 0.0001 + SUM(IIIREJ) + 0.0001)) / 10, 2) AS TotPer 
+        FROM 
+            ViewAllEntries 
+        WHERE 
+            Trdate >= @StartDate AND Trdate  <= @EndDate
+        GROUP BY 
+            Itcode
+    `;
+
+  const request = new sql.Request();
+
+  request.input('StartDate', sql.NVarChar, startDate);
+  request.input('EndDate', sql.NVarChar, endDate);
+
+  request.query(query, (err, result) => {
+    if (err) {
+      console.log('Error:', err);
+      res.status(500).json({ error: 'Internal server error' });
+    } else {
+      res.json(result.recordset);
+    }
+  });
+});
+
+
+//Stock statement
+app.get('/api/StockStatement', (req, res) => {
+  const { startDate, endDate } = req.query;
+
+  // Update the query to select from ViewAllEntries table with additional conditions
+  let query = `
+  SELECT subaccode, itcode, SUM(sentqty) + SUM(recdqty) AS BalQty, 0 AS SentQty, 0 AS RecdQty 
+  FROM ViewSubContractorsEntries 
+  WHERE TRDATE > @StartDate 
+  GROUP BY subaccode, ITCODE 
+  UNION ALL
+  SELECT subaccode, itcode, 0 AS BalQty, SUM(SENTQTY) AS SentQty, SUM(RECDQTY) AS RecdQty 
+  FROM ViewSubContractorsEntries 
+  WHERE TRDATE >= @StartDate AND TRDATE <= @EndDate 
+  GROUP BY subaccode, ITCODE;
+   
+    `;
+
+  const request = new sql.Request();
 
   request.input('StartDate', sql.NVarChar, startDate);
   request.input('EndDate', sql.NVarChar, endDate);
@@ -5449,228 +5528,3 @@ app.post('/api/SaveDistProcessEntries', async (req, res) => {
     }
   });
 });
-
-
-
-//For ItemRateChartMaster
-// GET all ItemRateChartMaster entries
-app.get('/api/ratechart', (req, res) => {
-  const query = 'SELECT * FROM ItemRateChartMaster';
-  sql.query(query, (err, result) => {
-    if (err) {
-      console.log('Error:', err);
-      res.status(500).json({ error: 'Internal server error' });
-    } else {
-      res.json(result.recordset);
-    }
-  });
-});
-
-// POST a new ItemRateChartMaster entry
-app.post('/api/ratechart', (req, res) => {
-  const { ItemCode, ItemName, ItemDesc, Rate, Remark1, UserID } = req.body;
-  const query = `
-    INSERT INTO ItemRateChartMaster (ItemCode, ItemName, ItemDesc, Rate, Remark1, UserID)
-    VALUES ('${ItemCode}', '${ItemName}', '${ItemDesc}', ${Rate}, '${Remark1}', '${UserID}');
-  `;
-  sql.query(query, (err) => {
-    if (err) {
-      console.log('Error:', err);
-      res.status(500).json({ error: 'Internal server error' });
-    } else {
-      res.json({ message: 'ItemRateChartMaster entry created successfully' });
-    }
-  });
-});
-
-// PUT update an existing ItemRateChartMaster entry
-app.put('/api/ratechart/:ItemCode', (req, res) => {
-  const { ItemCode } = req.params;
-  const { ItemName, ItemDesc, Rate, Remark1, UserID } = req.body;
-  const query = `
-    UPDATE ItemRateChartMaster
-    SET ItemName='${ItemName}', ItemDesc='${ItemDesc}', Rate=${Rate}, Remark1=N'${Remark1}', UserID='${UserID}'
-    WHERE ItemCode='${ItemCode}';
-  `;
-  sql.query(query, (err, result) => {
-    if (err) {
-      console.log('Error:', err);
-      res.status(500).json({ error: 'Internal server error' });
-    } else {
-      if (result.rowsAffected && result.rowsAffected[0] > 0) {
-        res.json({
-          message: 'ItemRateChartMaster entry updated successfully',
-          ItemCode: ItemCode,
-          ItemName,
-          ItemDesc,
-          Rate,
-          Remark1,
-          UserID,
-        });
-      } else {
-        res.status(404).json({ error: 'Record not found' });
-      }
-    }
-  });
-});
-
-// DELETE a ItemRateChartMaster entry
-app.delete('/api/ratechart/:ItemCode', async (req, res) => {
-  const { ItemCode } = req.params;
-  const UserName = req.headers['username'];
-
-  try {
-    // Fetch user permissions from the database based on the user making the request
-    const userPermissionsQuery = `SELECT AllowMasterDelete FROM Users WHERE UserName='${UserName}'`;
-
-    sql.query(userPermissionsQuery, async (userErr, userResults) => {
-      if (userErr) {
-        console.log('Error fetching user permissions:', userErr);
-        res.status(500).json({ error: 'Internal server error' });
-        return;
-      }
-
-      // Check if user results are not empty
-      if (userResults.recordset && userResults.recordset.length > 0) {
-        // Check if user has permission to delete entries
-        const { AllowMasterDelete } = userResults.recordset[0];
-
-        if (AllowMasterDelete === 1) {
-          // The user has permission to delete entries
-          const deleteQuery = `DELETE FROM ItemRateChartMaster WHERE ItemCode='${ItemCode}'`;
-
-          sql.query(deleteQuery, (deleteErr) => {
-            if (deleteErr) {
-              console.log('Error deleting entry:', deleteErr);
-              res.status(500).json({ error: 'Internal server error' });
-            } else {
-              res.json({ message: 'ItemRateChartMaster entry deleted successfully' });
-            }
-          });
-        } else {
-          // User does not have permission to delete entries
-          res.status(403).json({ error: 'Permission denied. You do not have the necessary permissions to delete entries.' });
-        }
-      } else {
-        // User not found in the database
-        res.status(404).json({ error: 'User not found.' });
-      }
-    });
-  } catch (error) {
-    console.error('Error:', error);
-    res.status(500).json({ error: 'Internal server error' });
-  }
-});
-
-
-// For YojanaMaster------------------------------------------------------------------------------------
-// GET all Yojana entries
-app.get('/api/yojana', (req, res) => {
-  const query = 'SELECT * FROM YojanaMaster';
-  sql.query(query, (err, result) => {
-    if (err) {
-      console.log('Error:', err);
-      res.status(500).json({ error: 'Internal server error' });
-    } else {
-      res.json(result.recordset);
-    }
-  });
-});
-
-// POST a new Yojana entry
-app.post('/api/yojana', (req, res) => {
-  const { YojanaCode, YojanaName, YojanaNameEng, Remark1, UserID } = req.body;
-  const query = `
-    INSERT INTO YojanaMaster (YojanaCode, YojanaName, YojanaNameEng, Remark1, UserID)
-    VALUES ('${YojanaCode}', N'${YojanaName}', '${YojanaNameEng}', '${Remark1}', '${UserID}');
-  `;
-  sql.query(query, (err) => {
-    if (err) {
-      console.log('Error:', err);
-      res.status(500).json({ error: 'Internal server error' });
-    } else {
-      res.json({ message: 'Yojana entry created successfully' });
-    }
-  });
-});
-
-// PUT update an existing Yojana entry
-app.put('/api/yojana/:YojanaCode', (req, res) => {
-  const { YojanaCode } = req.params;
-  const { YojanaName, YojanaNameEng, Remark1, UserID } = req.body;
-  const query = `
-    UPDATE YojanaMaster
-    SET YojanaName=N'${YojanaName}', YojanaNameEng='${YojanaNameEng}', Remark1='${Remark1}', UserID='${UserID}'
-    WHERE YojanaCode='${YojanaCode}';
-  `;
-  sql.query(query, (err, result) => {
-    if (err) {
-      console.log('Error:', err);
-      res.status(500).json({ error: 'Internal server error' });
-    } else {
-      if (result.rowsAffected && result.rowsAffected[0] > 0) {
-        res.json({
-          message: 'Yojana entry updated successfully',
-          YojanaCode,
-          YojanaName,
-          YojanaNameEng,
-          Remark1,
-          UserID,
-        });
-      } else {
-        res.status(404).json({ error: 'Record not found' });
-      }
-    }
-  });
-});
-
-// DELETE a Yojana entry
-app.delete('/api/yojana/:YojanaCode', async (req, res) => {
-  const { YojanaCode } = req.params;
-  const UserName = req.headers['username'];
-
-  try {
-    // Fetch user permissions from the database based on the user making the request
-    const userPermissionsQuery = `SELECT AllowMasterDelete FROM Users WHERE UserName='${UserName}'`;
-
-    sql.query(userPermissionsQuery, async (userErr, userResults) => {
-      if (userErr) {
-        console.log('Error fetching user permissions:', userErr);
-        res.status(500).json({ error: 'Internal server error' });
-        return;
-      }
-
-      // Check if user results are not empty
-      if (userResults.recordset && userResults.recordset.length > 0) {
-        // Check if user has permission to delete entries
-        const { AllowMasterDelete } = userResults.recordset[0];
-
-        if (AllowMasterDelete === 1) {
-          // The user has permission to delete entries
-          const deleteQuery = `DELETE FROM YojanaMaster WHERE YojanaCode='${YojanaCode}'`;
-
-          sql.query(deleteQuery, (deleteErr) => {
-            if (deleteErr) {
-              console.log('Error deleting entry:', deleteErr);
-              res.status(500).json({ error: 'Internal server error' });
-            } else {
-              res.json({ message: 'Yojana entry deleted successfully' });
-            }
-          });
-        } else {
-          // User does not have permission to delete entries
-          res.status(403).json({ error: 'Permission denied. You do not have the necessary permissions to delete entries.' });
-        }
-      } else {
-        // User not found in the database
-        res.status(404).json({ error: 'User not found.' });
-      }
-    });
-  } catch (error) {
-    console.error('Error:', error);
-    res.status(500).json({ error: 'Internal server error' });
-  }
-});
-
-
-
