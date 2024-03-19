@@ -3801,7 +3801,7 @@ app.get('/api/PartyStockLedger', (req, res) => {
 
 //Rejection Sheet 
 
-app.get('/api/RejectionSheet', (req, res) => {
+/* app.get('/api/RejectionSheet', (req, res) => {
   const { subledgerCode, itemCode, startDate, endDate, flag } = req.query;
 
   // Update the query to select from ViewAllEntries table with additional conditions
@@ -3841,11 +3841,60 @@ app.get('/api/RejectionSheet', (req, res) => {
       res.json(result.recordset);
     }
   });
+}); */
+app.get('/api/RejectionSheet', (req, res) => {
+  const { itemCode, startDate, endDate } = req.query;
+
+  // Update the query to select from ViewAllEntries table with additional conditions
+  let query = `
+    SELECT 
+        Itcode,
+        SUM(ProdQty) AS ProdQty,
+        SUM(SentQty) AS SentQty,
+        SUM(RecdQty) AS RecdQty,
+        SUM(SalesQty) AS SalesQty,
+        SUM(IREJ) AS IREJ,
+        SUM(IIREJ) AS IIREJ,
+        SUM(IIIREJ) AS IIIREJ,
+        SUM(IREJ) + SUM(IIREJ) + SUM(IIIREJ) AS TotREJ,
+        ROUND((SUM(IREJ) / (SUM(ProdQty) + 0.001)) * 100, 2) AS Iper,
+        ROUND((SUM(IIREJ) / (SUM(ProdQty) + 0.001)) * 100, 2) AS IIper,
+        ROUND((SUM(IIIREJ) / (SUM(ProdQty) + 0.001)) * 100, 2) AS IIIper,
+        ROUND(((SUM(ProdQty)) / (SUM(IREJ) + 0.0001 + SUM(IIREJ) + 0.0001 + SUM(IIIREJ) + 0.0001)) / 10, 2) AS TotPer 
+    FROM 
+        ViewAllEntries 
+    WHERE 
+        Trdate >= @StartDate AND Trdate  <= @EndDate
+  `;
+
+  const request = new sql.Request();
+
+  request.input('StartDate', sql.NVarChar, startDate);
+  request.input('EndDate', sql.NVarChar, endDate);
+
+  if (itemCode) {
+    query += `AND Itcode = @ItemCode `;
+    request.input('ItemCode', sql.Int, itemCode);
+  }
+
+  query += `
+    GROUP BY 
+        Itcode
+  `;
+
+  request.query(query, (err, result) => {
+    if (err) {
+      console.log('Error:', err);
+      res.status(500).json({ error: 'Internal server error' });
+    } else {
+      res.json(result.recordset);
+    }
+  });
 });
 
 
 //Stock statement
-app.get('/api/StockStatement', (req, res) => {
+/* app.get('/api/StockStatement', (req, res) => {
   const { startDate, endDate } = req.query;
 
   // Update the query to select from ViewAllEntries table with additional conditions
@@ -3857,7 +3906,7 @@ app.get('/api/StockStatement', (req, res) => {
   UNION ALL
   SELECT subaccode, itcode, 0 AS BalQty, SUM(SENTQTY) AS SentQty, SUM(RECDQTY) AS RecdQty 
   FROM ViewSubContractorsEntries 
-  WHERE TRDATE > @StartDate AND TRDATE <= @EndDate 
+  WHERE TRDATE > @StartDate AND TRDATE <= @EndDate   
   GROUP BY subaccode, ITCODE;
    
     `;
@@ -3875,7 +3924,69 @@ app.get('/api/StockStatement', (req, res) => {
       res.json(result.recordset);
     }
   });
+}); */
+
+
+app.get('/api/StockStatement', (req, res) => {
+  const { subledgerCode, itemCode, startDate, endDate, } = req.query;
+
+  let query = `
+  SELECT subaccode, itcode, SUM(sentqty) + SUM(recdqty) AS BalQty, 0 AS SentQty, 0 AS RecdQty 
+  FROM ViewSubContractorsEntries 
+  WHERE TRDATE > @StartDate 
+  `;
+
+  if (subledgerCode) {
+    query += `AND subaccode = @SubAccode `;
+  }
+
+  if (itemCode) {
+    query += `AND itcode = @Itcode `;
+  }
+
+  query += `
+  GROUP BY subaccode, ITCODE 
+  UNION ALL
+  SELECT subaccode, itcode, 0 AS BalQty, SUM(SENTQTY) AS SentQty, SUM(RECDQTY) AS RecdQty 
+  FROM ViewSubContractorsEntries 
+  WHERE TRDATE > @StartDate AND TRDATE <= @EndDate   
+  `;
+
+  if (subledgerCode) {
+    query += `AND subaccode = @SubAccode `;
+  }
+
+  if (itemCode) {
+    query += `AND itcode = @Itcode `;
+  }
+
+  query += `
+  GROUP BY subaccode, ITCODE;
+  `;
+
+  const request = new sql.Request();
+
+  request.input('StartDate', sql.NVarChar, startDate);
+  request.input('EndDate', sql.NVarChar, endDate);
+
+  if (subledgerCode) {
+    request.input('SubAccode', sql.Int, subledgerCode);
+  }
+
+  if (itemCode) {
+    request.input('Itcode', sql.Int, itemCode);
+  }
+
+  request.query(query, (err, result) => {
+    if (err) {
+      console.log('Error:', err);
+      res.status(500).json({ error: 'Internal server error' });
+    } else {
+      res.json(result.recordset);
+    }
+  });
 });
+
 
 //Trai-Balance report ------------------------------------------------------------------------------------
 app.get('/api/trialbalance', (req, res) => {
@@ -5528,10 +5639,3 @@ app.post('/api/SaveDistProcessEntries', async (req, res) => {
     }
   });
 });
-
-
-
-
-
-
-
