@@ -3713,6 +3713,47 @@ app.get('/api/PendingPurchaseOrderRegister', (req, res) => {
   });
 });
 
+/* app.get('/api/PartyStockLedger', (req, res) => {
+  const { subledgerCode, itemCode, startDate, endDate, flag } = req.query;
+
+  console.log("Report Data 1 :",{ subledgerCode, itemCode, startDate, endDate, flag });
+
+  let query = `
+  DELETE FROM ProcessEntryReport
+    INSERT INTO ProcessEntryReport
+    (BillNo, flag, EntryNo, TrDate, SubAccode, ItCode, HeatNo, CostRate)
+    SELECT
+    cumulative_balqty, flag, entryno, trdate, subaccode, itcode, sentqty ,recdqty
+    FROM ViewSubContractorsBal;
+
+    DELETE FROM ProcessEntryReport 
+    WHERE TrDate >= @StartDate AND TrDate <= @EndDate
+
+    SELECT *FROM ProcessEntryReport WHERE TrDate >= @StartDate AND TrDate <= @EndDate
+  `;
+  const request = new sql.Request();
+  if (subledgerCode) {
+    query += ' AND SubAccode = @SubAccode';
+    request.input('SubAccode', sql.Int, subledgerCode);
+  }
+
+  if (itemCode) {
+    query += ' AND ItCode = @ItCode';
+    request.input('ItCode', sql.Int, itemCode);
+  }
+
+  request.input('StartDate', sql.NVarChar, startDate);
+  request.input('EndDate', sql.NVarChar, endDate);
+
+  request.query(query, (err, result) => {
+    if (err) {
+      console.log('Error:', err);
+      res.status(500).json({ error: 'Internal server error' });
+    } else {
+      res.json(result.recordset);
+    }
+  });
+}); */
 
 app.get('/api/PartyStockLedger', (req, res) => {
   const { subledgerCode, itemCode, startDate, endDate, flag } = req.query;
@@ -3816,7 +3857,7 @@ app.get('/api/StockStatement', (req, res) => {
   UNION ALL
   SELECT subaccode, itcode, 0 AS BalQty, SUM(SENTQTY) AS SentQty, SUM(RECDQTY) AS RecdQty 
   FROM ViewSubContractorsEntries 
-  WHERE TRDATE >= @StartDate AND TRDATE <= @EndDate 
+  WHERE TRDATE > @StartDate AND TRDATE <= @EndDate 
   GROUP BY subaccode, ITCODE;
    
     `;
@@ -5487,3 +5528,10 @@ app.post('/api/SaveDistProcessEntries', async (req, res) => {
     }
   });
 });
+
+
+
+
+
+
+
