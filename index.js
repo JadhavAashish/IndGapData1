@@ -3688,7 +3688,7 @@ app.get('/api/InwardRegister', (req, res) => {
 });
 
 app.get('/api/PendingPurchaseOrderRegister', (req, res) => {
-  const { subledgerCode, startDate, endDate, flag } = req.query;
+  const { subledgerCode, itemCode, startDate, endDate } = req.query;
 
   // Update the query to select from ProcessEntry table with additional conditions
   const query = `
@@ -3698,10 +3698,18 @@ app.get('/api/PendingPurchaseOrderRegister', (req, res) => {
 
   // AND SubAccode = @SubAccode 
   const request = new sql.Request();
-  request.input('SubAccode', sql.Int, subledgerCode);
-  request.input('StartDate', sql.NVarChar, startDate); // Assuming startDate is provided in the request
-  request.input('EndDate', sql.NVarChar, endDate);
-  request.input('Flag', sql.NVarChar, flag);
+
+  // Check if subledgerCode is provided
+  if (subledgerCode) {
+    query += ' WHERE SubAccode = @SubAccode';
+    request.input('SubAccode', sql.Int, subledgerCode);
+  }
+
+  // Check if itemCode is provided
+  if (itemCode) {
+    query += ' AND ItCode = @ItCode';
+    request.input('ItCode', sql.Int, itemCode);
+  }
 
   request.query(query, (err, result) => {
     if (err) {
@@ -3800,48 +3808,6 @@ app.get('/api/PartyStockLedger', (req, res) => {
 
 
 //Rejection Sheet 
-
-/* app.get('/api/RejectionSheet', (req, res) => {
-  const { subledgerCode, itemCode, startDate, endDate, flag } = req.query;
-
-  // Update the query to select from ViewAllEntries table with additional conditions
-  let query = `
-        SELECT 
-            Itcode,
-            SUM(ProdQty) AS ProdQty,
-            SUM(SentQty) AS SentQty,
-            SUM(RecdQty) AS RecdQty,
-            SUM(SalesQty) AS SalesQty,
-            SUM(IREJ) AS IREJ,
-            SUM(IIREJ) AS IIREJ,
-            SUM(IIIREJ) AS IIIREJ,
-            SUM(IREJ) + SUM(IIREJ) + SUM(IIIREJ) AS TotREJ,
-            ROUND((SUM(IREJ) / (SUM(ProdQty) + 0.001)) * 100, 2) AS Iper,
-            ROUND((SUM(IIREJ) / (SUM(ProdQty) + 0.001)) * 100, 2) AS IIper,
-            ROUND((SUM(IIIREJ) / (SUM(ProdQty) + 0.001)) * 100, 2) AS IIIper,
-            ROUND(((SUM(ProdQty)) / (SUM(IREJ) + 0.0001 + SUM(IIREJ) + 0.0001 + SUM(IIIREJ) + 0.0001)) / 10, 2) AS TotPer 
-        FROM 
-            ViewAllEntries 
-        WHERE 
-            Trdate >= @StartDate AND Trdate  <= @EndDate
-        GROUP BY 
-            Itcode
-    `;
-
-  const request = new sql.Request();
-
-  request.input('StartDate', sql.NVarChar, startDate);
-  request.input('EndDate', sql.NVarChar, endDate);
-
-  request.query(query, (err, result) => {
-    if (err) {
-      console.log('Error:', err);
-      res.status(500).json({ error: 'Internal server error' });
-    } else {
-      res.json(result.recordset);
-    }
-  });
-}); */
 app.get('/api/RejectionSheet', (req, res) => {
   const { itemCode, startDate, endDate } = req.query;
 
@@ -3860,11 +3826,11 @@ app.get('/api/RejectionSheet', (req, res) => {
         ROUND((SUM(IREJ) / (SUM(ProdQty) + 0.001)) * 100, 2) AS Iper,
         ROUND((SUM(IIREJ) / (SUM(ProdQty) + 0.001)) * 100, 2) AS IIper,
         ROUND((SUM(IIIREJ) / (SUM(ProdQty) + 0.001)) * 100, 2) AS IIIper,
-        ROUND(((SUM(ProdQty)) / (SUM(IREJ) + 0.0001 + SUM(IIREJ) + 0.0001 + SUM(IIIREJ) + 0.0001)) / 10, 2) AS TotPer 
+        ROUND(((SUM(IREJ) + SUM(IIREJ) + SUM(IIIREJ)) / (SUM(ProdQty) + 0.000001)) * 100, 2) AS TotPer 
     FROM 
         ViewAllEntries 
     WHERE 
-        Trdate >= @StartDate AND Trdate  <= @EndDate
+        Trdate >= @StartDate AND Trdate <= @EndDate
   `;
 
   const request = new sql.Request();
@@ -3931,9 +3897,9 @@ app.get('/api/StockStatement', (req, res) => {
   const { subledgerCode, itemCode, startDate, endDate, } = req.query;
 
   let query = `
-  SELECT subaccode, itcode, SUM(sentqty) + SUM(recdqty) AS BalQty, 0 AS SentQty, 0 AS RecdQty 
-  FROM ViewSubContractorsEntries 
-  WHERE TRDATE > @StartDate 
+    SELECT subaccode, itcode, ROUND(ABS(SUM(sentqty) + SUM(recdqty)), 2) AS BalQty, 0 AS SentQty, 0 AS RecdQty 
+    FROM ViewSubContractorsEntries 
+    WHERE TRDATE > @StartDate 
   `;
 
   if (subledgerCode) {
@@ -3945,11 +3911,11 @@ app.get('/api/StockStatement', (req, res) => {
   }
 
   query += `
-  GROUP BY subaccode, ITCODE 
-  UNION ALL
-  SELECT subaccode, itcode, 0 AS BalQty, SUM(SENTQTY) AS SentQty, SUM(RECDQTY) AS RecdQty 
-  FROM ViewSubContractorsEntries 
-  WHERE TRDATE > @StartDate AND TRDATE <= @EndDate   
+    GROUP BY subaccode, ITCODE 
+    UNION ALL
+    SELECT subaccode, itcode, 0 AS BalQty, ROUND(ABS(SUM(SENTQTY)), 2) AS SentQty, ROUND(ABS(SUM(RECDQTY)), 2) AS RecdQty 
+    FROM ViewSubContractorsEntries 
+    WHERE TRDATE > @StartDate AND TRDATE <= @EndDate   
   `;
 
   if (subledgerCode) {
@@ -5639,3 +5605,10 @@ app.post('/api/SaveDistProcessEntries', async (req, res) => {
     }
   });
 });
+
+
+
+
+
+
+
