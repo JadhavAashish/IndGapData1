@@ -14,7 +14,7 @@ app.use(cors());
 
 
 // Database configuration
-const config = {
+const dbConfig = {
   user: 'Well1',
   password: 'well228608',
   server: 'sanghinstance.chasw9cgenor.ap-south-1.rds.amazonaws.com',
@@ -26,14 +26,138 @@ const config = {
   },
 };
 
-// Connect to the database
-sql.connect(config)
+const defaultDatabase = 'IndGapCompany'; // Default database name
+
+// Connect to the default database on server startup
+connectToDatabase(defaultDatabase)
   .then(() => {
-    console.log('Connected to the database');
+    console.log(`Connected to the default database: ${defaultDatabase}`);
   })
-  .catch((err) => {
-    console.error('Database connection failed:', err);
+  .catch((error) => {
+    console.error('Error connecting to the default database:', error);
   });
+
+  app.get('/api/company_code', (req, res) => {
+    const query = 'SELECT * FROM IndGapCompany.dbo.CompanyMaster';
+    sql.query(query, (err, result) => {
+      if (err) {
+        console.log('Error:', err);
+        res.status(500).json({ error: 'Internal server error' });
+      } else {
+        res.json(result.recordset);
+      }
+    });
+  });
+
+  app.get('/api/database_year_master/:compCode', (req, res) => {
+    const compCode = req.params.compCode;
+    const query = `SELECT * FROM IndGapCompany.dbo.YearMaster WHERE CompCode = '${compCode}'`;
+    console.log("Query : ",query);
+    sql.query(query, (err, result) => {
+      if (err) {
+        console.log('Error:', err);
+        res.status(500).json({ error: 'Internal server error' });
+      } else {
+        res.json(result.recordset);
+      }
+    });
+  });
+
+  app.post('/api/dblogin', (req, res) => {
+    const { clientId, DBpassword } = req.body;
+    console.log("parameters ",{ clientId, DBpassword });
+    // Assuming you have a SQL database connection named 'sql'
+  
+    const query = `SELECT CompCode FROM IndGapCompany.dbo.CompanyMaster WHERE ClientID = '${clientId}' AND MainPassword = '${DBpassword}'`;
+    
+    sql.query(query, (err, result) => {
+      if (err) {
+        console.log('Error:', err);
+        res.status(500).json({ error: 'Internal server error' });
+      } else {
+        if (result.recordset.length > 0) {
+          const compCode = result.recordset[0].CompCode;
+          res.json({ compCode });
+        } else {
+          res.status(401).json({ error: 'Invalid credentials' });
+        }
+      }
+    });
+  });
+
+  app.post('/connect', async (req, res) => {
+    const { dbcompanyCode, financialYear } = req.body;
+    console.log("Connect data",{ dbcompanyCode, financialYear });
+    if (!dbcompanyCode || !financialYear) {
+      return res.status(400).json({ error: 'Company code and financial year are required' });
+    }
+  
+    const databaseName = `IndGapData${dbcompanyCode}`;
+    //const databaseName = `IndGapData${dbcompanyCode}FY${financialYear}`;
+    console.log('IndGapData${companyCode}-${financialYear}', `IndGapData${dbcompanyCode}FY${financialYear}`);
+    // const databaseName = `GapData${companyCode}`;
+  
+    if (sql && sql.close) {
+      await sql.close();
+      console.log('Closed existing database connection');
+    }
+  
+    try {
+      const isConnected = await connectToDatabase(databaseName);
+      if (isConnected) {
+        res.json({ message: `Successfully connected to the ${databaseName} database` });
+      } else {
+        res.status(500).json({ error: 'Failed to connect to the database' });
+      }
+    } catch (error) {
+      console.error('Error:', error);
+      res.status(500).json({ error: 'Internal Server Error' });
+    }
+  });
+
+// Connect to the database function
+async function connectToDatabase(databaseName) {
+  const config = {
+    ...dbConfig,
+    database: databaseName
+  };
+  try {
+    await sql.connect(config);
+    console.log("config", config);
+    console.log(`Connected to the ${databaseName} database`);
+    return true;
+  } catch (error) {
+    console.error('Error connecting to the database:', error);
+    return false;
+  }
+}
+
+app.post('/close-sql-connection', async (req, res) => {
+  try {
+    // Close the SQL connection
+    await sql.close();
+    res.json({ message: 'SQL connection closed successfully' });
+  } catch (error) {
+    console.error('Error closing SQL connection:', error);
+    res.status(500).json({ error: 'Internal Server Error' });
+  }
+});
+
+// Assuming you have your route defined like this
+app.post('/logout', async (req, res) => {
+  try {
+    await sql.connect(defaultDatabase);
+    console.log(`Reconnected to the default database: ${defaultDatabase}`);
+
+    // Respond to the client indicating successful logout
+    res.json({ message: 'Logout successful' });
+  } catch (error) {
+    console.error('Error closing SQL connection or reconnecting to the default database:', error);
+    // Respond with an error to the client
+    res.status(500).json({ error: 'An error occurred during logout' });
+  }
+}); 
+
 
 // Start the server
 const PORT = process.env.PORT || 8090;
@@ -115,6 +239,57 @@ app.put('/api/change-password', async (req, res) => {
     res.status(500).json({ error: 'Internal server error' });
   }
 });
+
+app.put('/api/DB-change-password', async (req, res) => {
+  const { clientId, oldDBPassword, newDBPassword } = req.body;
+
+  try {
+    // Validate input (optional, depending on your requirements)
+    const userQuery = `
+        SELECT * FROM WinGapCompany.dbo.CompanyMaster
+        WHERE ClientID = '${clientId}'
+      `;
+
+    sql.query(userQuery, async (err, result) => {
+      if (err) {
+        console.log('Error Executing SQL query:', err);
+        res.status(500).json({ error: 'Internal server error' });
+      } else {
+        if (result.recordset.length > 0) {
+          const storedPassword = result.recordset[0].MainPassword;
+
+          if (oldDBPassword === storedPassword) {
+            
+            const updateQuery = `
+                UPDATE IndGapCompany.dbo.CompanyMaster
+                SET MainPassword = '${newDBPassword}'
+                WHERE ClientID = '${clientId}'
+              `;
+
+            sql.query(updateQuery, (updateErr) => {
+              if (updateErr) {
+                console.log('Error updating password:', updateErr);
+                res.status(500).json({ error: 'Internal server error' });
+              } else {
+                res.json({ message: 'Password changed successfully' });
+                console.log("Password Updated !...");
+
+              }
+            });
+          } else {
+            res.status(401).json({ error: 'Incorrect old password' });
+          }
+        } else {
+          res.status(404).json({ error: 'User not found' });
+        }
+      }
+    });
+  } catch (error) {
+    console.error('Error changing password:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
 
 app.post('/api/users', async (req, res) => {
   const {
@@ -5605,6 +5780,14 @@ app.post('/api/SaveDistProcessEntries', async (req, res) => {
     }
   });
 });
+
+
+
+
+
+
+
+
 
 
 
