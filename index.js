@@ -1588,44 +1588,70 @@ app.post('/api/items-master', (req, res) => {
     UserID
   } = req.body;
 
+  console.log("Item Master :- ",{
+    ItCode,
+    ItName,
+    PartNo,
+    GradeCode,
+    SubAcCode,
+    ItemSubGroupCode,
+    ItemCategoryCode,
+    UnitCode,
+    PackingCode,
+    LocationCode,
+    HSNCODE,
+    GstRateCode,
+    BoxWeight,
+    ProdnWeight,
+    SalesWeight,
+    RRWeight,
+    BoringWeight,
+    QtyPerBox,
+    CostRate,
+    BufferStock,
+    Remark1,
+    Remark2,
+    Remark3,
+    UserID
+  });
 
   const query = `
-    INSERT INTO ItemMaster ( 
-      ItCode, 
-      ItName, 
-      PartNo, 
-      GradeCode , 
-      SubAccode, 
-      ItemSubGroupCode, 
-      ItemCategoryCode, 
-      UnitCode , 
-      PackingCode, 
-      LocationCode, 
-      HSNCODE, 
-      GstRateCode, 
-      BoxWeight, 
-      ProdnWeight, 
-      SalesWeight, 
-      RRWeight, 
-      BoringWeight, 
-      QtyPerBox, 
-      CostRate, 
-      BufferStock, 
-      Remark1, 
-      Remark2, 
-      Remark3, 
-      UserID
-      )
-      VALUES ( 
-        '${ItCode}', N'${ItName}', '${PartNo}', '${GradeCode}' ,
-        ${SubAcCode}, '${ItemSubGroupCode}', '${ItemCategoryCode}', '${UnitCode}' , 
-        '${PackingCode}', '${LocationCode}', '${HSNCODE}', '${GstRateCode}',
-        '${BoxWeight}', '${ProdnWeight}', '${SalesWeight}', '${RRWeight}',
-        '${BoringWeight}', '${QtyPerBox}', '${CostRate}', '${BufferStock}',
-        N'${Remark1}', N'${Remark2}', N'${Remark3}', '${UserID}'
-      );
-      
-  `;
+  INSERT INTO ItemMaster ( 
+    ItCode, 
+    ItName, 
+    PartNo, 
+    GradeCode , 
+    SubAccode, 
+    ItemSubGroupCode, 
+    ItemCategoryCode, 
+    UnitCode , 
+    PackingCode, 
+    LocationCode, 
+    HSNCODE, 
+    GSTRATECODE, 
+    BoxWeight, 
+    ProdnWeight, 
+    SalesWeight, 
+    RRWeight, 
+    BoringWeight, 
+    QtyPerBox, 
+    CostRate, 
+    BufferStock, 
+    Remark1, 
+    Remark2, 
+    Remark3, 
+    UserID
+  )
+  VALUES ( 
+    '${ItCode}' , N'${ItName}' , '${PartNo}' , '${GradeCode}' ,
+    ${SubAcCode} , ${ItemSubGroupCode} , ${ItemCategoryCode} , ${UnitCode} , 
+    ${PackingCode} , ${LocationCode} , '${HSNCODE}' , ${GstRateCode},
+    '${BoxWeight}', '${ProdnWeight}', '${SalesWeight}', '${RRWeight}',
+    '${BoringWeight}', ${QtyPerBox}, '${CostRate}', ${BufferStock},
+    N'${Remark1}', N'${Remark2}', N'${Remark3}', '${UserID}'
+  );
+`;
+
   sql.query(query, (err) => {
     if (err) {
       console.log('Error:', err);
@@ -1634,7 +1660,9 @@ app.post('/api/items-master', (req, res) => {
       res.json({ message: 'Item created successfully' });
     }
   });
-});
+}); 
+
+
 
 app.put('/api/items-master/:ItCode', (req, res) => {
   const { ItCode } = req.params;
@@ -1664,7 +1692,7 @@ app.put('/api/items-master/:ItCode', (req, res) => {
     UserID
   } = req.body;
   const query = `
-  UPDATE ItemMaster
+  UPDATE  ItemMaster
   SET
     ItName = N'${ItName}',
     PartNo = '${PartNo}',
@@ -5780,18 +5808,3 @@ app.post('/api/SaveDistProcessEntries', async (req, res) => {
     }
   });
 });
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
