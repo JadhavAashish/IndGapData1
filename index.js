@@ -37,83 +37,83 @@ connectToDatabase(defaultDatabase)
     console.error('Error connecting to the default database:', error);
   });
 
-  app.get('/api/company_code', (req, res) => {
-    const query = 'SELECT * FROM IndGapCompany.dbo.CompanyMaster';
-    sql.query(query, (err, result) => {
-      if (err) {
-        console.log('Error:', err);
-        res.status(500).json({ error: 'Internal server error' });
-      } else {
-        res.json(result.recordset);
-      }
-    });
-  });
-
-  app.get('/api/database_year_master/:compCode', (req, res) => {
-    const compCode = req.params.compCode;
-    const query = `SELECT * FROM IndGapCompany.dbo.YearMaster WHERE CompCode = '${compCode}'`;
-    console.log("Query : ",query);
-    sql.query(query, (err, result) => {
-      if (err) {
-        console.log('Error:', err);
-        res.status(500).json({ error: 'Internal server error' });
-      } else {
-        res.json(result.recordset);
-      }
-    });
-  });
-
-  app.post('/api/dblogin', (req, res) => {
-    const { clientId, DBpassword } = req.body;
-    console.log("parameters ",{ clientId, DBpassword });
-    // Assuming you have a SQL database connection named 'sql'
-  
-    const query = `SELECT CompCode FROM IndGapCompany.dbo.CompanyMaster WHERE ClientID = '${clientId}' AND MainPassword = '${DBpassword}'`;
-    
-    sql.query(query, (err, result) => {
-      if (err) {
-        console.log('Error:', err);
-        res.status(500).json({ error: 'Internal server error' });
-      } else {
-        if (result.recordset.length > 0) {
-          const compCode = result.recordset[0].CompCode;
-          res.json({ compCode });
-        } else {
-          res.status(401).json({ error: 'Invalid credentials' });
-        }
-      }
-    });
-  });
-
-  app.post('/connect', async (req, res) => {
-    const { dbcompanyCode, financialYear } = req.body;
-    console.log("Connect data",{ dbcompanyCode, financialYear });
-    if (!dbcompanyCode || !financialYear) {
-      return res.status(400).json({ error: 'Company code and financial year are required' });
-    }
-  
-    const databaseName = `IndGapData${dbcompanyCode}`;
-    //const databaseName = `IndGapData${dbcompanyCode}FY${financialYear}`;
-    console.log('IndGapData${companyCode}-${financialYear}', `IndGapData${dbcompanyCode}FY${financialYear}`);
-    // const databaseName = `GapData${companyCode}`;
-  
-    if (sql && sql.close) {
-      await sql.close();
-      console.log('Closed existing database connection');
-    }
-  
-    try {
-      const isConnected = await connectToDatabase(databaseName);
-      if (isConnected) {
-        res.json({ message: `Successfully connected to the ${databaseName} database` });
-      } else {
-        res.status(500).json({ error: 'Failed to connect to the database' });
-      }
-    } catch (error) {
-      console.error('Error:', error);
-      res.status(500).json({ error: 'Internal Server Error' });
+app.get('/api/company_code', (req, res) => {
+  const query = 'SELECT * FROM IndGapCompany.dbo.CompanyMaster';
+  sql.query(query, (err, result) => {
+    if (err) {
+      console.log('Error:', err);
+      res.status(500).json({ error: 'Internal server error' });
+    } else {
+      res.json(result.recordset);
     }
   });
+});
+
+app.get('/api/database_year_master/:compCode', (req, res) => {
+  const compCode = req.params.compCode;
+  const query = `SELECT * FROM IndGapCompany.dbo.YearMaster WHERE CompCode = '${compCode}'`;
+  console.log("Query : ", query);
+  sql.query(query, (err, result) => {
+    if (err) {
+      console.log('Error:', err);
+      res.status(500).json({ error: 'Internal server error' });
+    } else {
+      res.json(result.recordset);
+    }
+  });
+});
+
+app.post('/api/dblogin', (req, res) => {
+  const { clientId, DBpassword } = req.body;
+  console.log("parameters ", { clientId, DBpassword });
+  // Assuming you have a SQL database connection named 'sql'
+
+  const query = `SELECT CompCode FROM IndGapCompany.dbo.CompanyMaster WHERE ClientID = '${clientId}' AND MainPassword = '${DBpassword}'`;
+
+  sql.query(query, (err, result) => {
+    if (err) {
+      console.log('Error:', err);
+      res.status(500).json({ error: 'Internal server error' });
+    } else {
+      if (result.recordset.length > 0) {
+        const compCode = result.recordset[0].CompCode;
+        res.json({ compCode });
+      } else {
+        res.status(401).json({ error: 'Invalid credentials' });
+      }
+    }
+  });
+});
+
+app.post('/connect', async (req, res) => {
+  const { dbcompanyCode, financialYear } = req.body;
+  console.log("Connect data", { dbcompanyCode, financialYear });
+  if (!dbcompanyCode || !financialYear) {
+    return res.status(400).json({ error: 'Company code and financial year are required' });
+  }
+
+  const databaseName = `IndGapData${dbcompanyCode}`;
+  //const databaseName = `IndGapData${dbcompanyCode}FY${financialYear}`;
+  console.log('IndGapData${companyCode}-${financialYear}', `IndGapData${dbcompanyCode}FY${financialYear}`);
+  // const databaseName = `GapData${companyCode}`;
+
+  if (sql && sql.close) {
+    await sql.close();
+    console.log('Closed existing database connection');
+  }
+
+  try {
+    const isConnected = await connectToDatabase(databaseName);
+    if (isConnected) {
+      res.json({ message: `Successfully connected to the ${databaseName} database` });
+    } else {
+      res.status(500).json({ error: 'Failed to connect to the database' });
+    }
+  } catch (error) {
+    console.error('Error:', error);
+    res.status(500).json({ error: 'Internal Server Error' });
+  }
+});
 
 // Connect to the database function
 async function connectToDatabase(databaseName) {
@@ -156,7 +156,7 @@ app.post('/logout', async (req, res) => {
     // Respond with an error to the client
     res.status(500).json({ error: 'An error occurred during logout' });
   }
-}); 
+});
 
 
 // Start the server
@@ -259,7 +259,7 @@ app.put('/api/DB-change-password', async (req, res) => {
           const storedPassword = result.recordset[0].MainPassword;
 
           if (oldDBPassword === storedPassword) {
-            
+
             const updateQuery = `
                 UPDATE IndGapCompany.dbo.CompanyMaster
                 SET MainPassword = '${newDBPassword}'
@@ -1588,7 +1588,7 @@ app.post('/api/items-master', (req, res) => {
     UserID
   } = req.body;
 
-  console.log("Item Master :- ",{
+  console.log("Item Master :- ", {
     ItCode,
     ItName,
     PartNo,
@@ -1660,7 +1660,7 @@ app.post('/api/items-master', (req, res) => {
       res.json({ message: 'Item created successfully' });
     }
   });
-}); 
+});
 
 
 
@@ -3924,21 +3924,19 @@ app.get('/api/PendingPurchaseOrderRegister', (req, res) => {
   });
 });
 
-/* app.get('/api/PartyStockLedger', (req, res) => {
+app.get('/api/PartyStockLedger', (req, res) => {
   const { subledgerCode, itemCode, startDate, endDate, flag } = req.query;
 
-  console.log("Report Data 1 :",{ subledgerCode, itemCode, startDate, endDate, flag });
+  console.log("Report Data 1 :", { subledgerCode, itemCode, startDate, endDate, flag });
 
   let query = `
-  DELETE FROM ProcessEntryReport
+    DELETE FROM ProcessEntryReport;
+   
     INSERT INTO ProcessEntryReport
     (BillNo, flag, EntryNo, TrDate, SubAccode, ItCode, HeatNo, CostRate)
     SELECT
     cumulative_balqty, flag, entryno, trdate, subaccode, itcode, sentqty ,recdqty
     FROM ViewSubContractorsBal;
-
-    DELETE FROM ProcessEntryReport 
-    WHERE TrDate >= @StartDate AND TrDate <= @EndDate
 
     SELECT *FROM ProcessEntryReport WHERE TrDate >= @StartDate AND TrDate <= @EndDate
   `;
@@ -3964,25 +3962,22 @@ app.get('/api/PendingPurchaseOrderRegister', (req, res) => {
       res.json(result.recordset);
     }
   });
-}); */
+});
 
-app.get('/api/PartyStockLedger', (req, res) => {
+//06/04/2024 commented code
+/* app.get('/api/PartyStockLedger', (req, res) => {
   const { subledgerCode, itemCode, startDate, endDate, flag } = req.query;
 
-  console.log("Report Data 1 :", { subledgerCode, itemCode, startDate, endDate, flag });
+  console.log("Report Data 1  PartyStockLedger :", { subledgerCode, itemCode, startDate, endDate, flag });
 
   let query = `
-    DELETE FROM ProcessEntryReport
-    INSERT INTO ProcessEntryReport
-    (BillNo, flag, EntryNo, TrDate, SubAccode, ItCode, HeatNo, CostRate)
+    DELETE FROM ProcessEntryReport WHERE TrDate <= @StartDate OR TrDate >= @EndDate;
+
+    INSERT INTO ProcessEntryReport (BillNo, flag, EntryNo, TrDate, SubAccode, ItCode, HeatNo, CostRate)
     SELECT cumulative_balqty, flag, entryno, trdate, subaccode, itcode, sentqty, recdqty
     FROM ViewSubContractorsBal
-
-    DELETE FROM ProcessEntryReport
-    WHERE TrDate <= @StartDate OR TrDate >= @EndDate
-
-    SELECT * FROM ProcessEntryReport WHERE TrDate >= @StartDate AND TrDate <= @EndDate
-    `;
+    WHERE TrDate >= @StartDate AND TrDate <= @EndDate
+  `;
 
   const request = new sql.Request();
 
@@ -4008,6 +4003,46 @@ app.get('/api/PartyStockLedger', (req, res) => {
     }
   });
 });
+ */
+
+/* app.get('/api/PartyStockLedger', (req, res) => {
+  const { subledgerCode, itemCode, startDate, endDate, flag } = req.query;
+
+  console.log("Report Data 1  PartyStockLedger :", { subledgerCode, itemCode, startDate, endDate, flag });
+
+  let query = `
+  DELETE FROM ProcessEntryReport;
+
+  INSERT INTO ProcessEntryReport (BillNo, flag, EntryNo, TrDate, SubAccode, ItCode, HeatNo, CostRate)
+  SELECT cumulative_balqty, flag, entryno, trdate, subaccode, itcode, sentqty, recdqty
+  FROM ViewSubContractorsBal
+  WHERE TrDate >= @StartDate AND TrDate <= @EndDate
+  `;
+
+  const request = new sql.Request();
+
+  request.input('StartDate', sql.NVarChar, startDate);
+  request.input('EndDate', sql.NVarChar, endDate);
+
+  if (subledgerCode) {
+    query += ' AND SubAccode = @SubAccode';
+    request.input('SubAccode', sql.Int, subledgerCode);
+  }
+
+  if (itemCode) {
+    query += ' AND ItCode = @ItCode';
+    request.input('ItCode', sql.Int, itemCode);
+  }
+
+  request.query(query, (err, result) => {
+    if (err) {
+      console.log('Error:', err);
+      res.status(500).json({ error: 'Internal server error' });
+    } else {
+      res.json(result.recordset);
+    }
+  });
+}); */
 
 
 //Rejection Sheet 
@@ -4100,7 +4135,7 @@ app.get('/api/StockStatement', (req, res) => {
   const { subledgerCode, itemCode, startDate, endDate, } = req.query;
 
   let query = `
-    SELECT subaccode, itcode, ROUND(ABS(SUM(sentqty) + SUM(recdqty)), 2) AS BalQty, 0 AS SentQty, 0 AS RecdQty 
+    SELECT Flag, EntryNo, TrDate, subaccode, itcode, ROUND(ABS(SUM(sentqty) + SUM(recdqty)), 2) AS BalQty, 0 AS SentQty, 0 AS RecdQty
     FROM ViewSubContractorsEntries 
     WHERE TRDATE > @StartDate 
   `;
@@ -4114,9 +4149,9 @@ app.get('/api/StockStatement', (req, res) => {
   }
 
   query += `
-    GROUP BY subaccode, ITCODE 
+    GROUP BY Flag, EntryNo, TrDate, subaccode, ITCODE
     UNION ALL
-    SELECT subaccode, itcode, 0 AS BalQty, ROUND(ABS(SUM(SENTQTY)), 2) AS SentQty, ROUND(ABS(SUM(RECDQTY)), 2) AS RecdQty 
+    SELECT Flag, EntryNo, TrDate, subaccode, itcode, 0 AS BalQty, ROUND(ABS(SUM(SENTQTY)), 2) AS SentQty, ROUND(ABS(SUM(RECDQTY)), 2) AS RecdQty
     FROM ViewSubContractorsEntries 
     WHERE TRDATE > @StartDate AND TRDATE <= @EndDate   
   `;
@@ -4130,7 +4165,7 @@ app.get('/api/StockStatement', (req, res) => {
   }
 
   query += `
-  GROUP BY subaccode, ITCODE;
+  GROUP BY Flag, EntryNo, TrDate, subaccode, ITCODE;
   `;
 
   const request = new sql.Request();
