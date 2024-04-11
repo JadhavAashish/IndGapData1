@@ -5223,6 +5223,138 @@ app.delete('/api/rejection/:RejCode', async (req, res) => {
   }
 });
 
+//For ProcessEntry (Array)
+app.get('/api/processentry/:Flag', (req, res) => {
+  const { Flag } = req.params;
+
+  const query = `SELECT * FROM ProcessEntry WHERE Flag = '${Flag}'`;
+  sql.query(query, (err, result) => {
+    if (err) {
+      console.log('Error:', err);
+      res.status(500).json({ error: 'Internal server error' });
+    } else {
+      res.json(result.recordset);
+    }
+  });
+});
+
+app.post('/api/processentry/:EntryNo/:Flag', (req, res) => {
+  try {
+    const EntryNo = req.params.EntryNo;
+    const Flag = req.params.Flag;
+    const entryData = req.body;
+
+    const values = entryData.map(entry => `(
+      '${entry.Flag}',
+      ${entry.EntryNo}, 
+      '${entry.TrDate}', 
+      '${entry.SubAccode}',
+      ${entry.EmpCode || 0},
+      '${entry.PONo}',
+      '${entry.PODate}',
+      '${entry.DCNo}',
+      '${entry.CiHeats}',
+      '${entry.DiHeats}',
+      '${entry.VehicleCode}',
+      '${entry.ItCode}',
+      '${entry.BoxQty}',
+      ${entry.Qty || 0},
+      '${entry.ShortQty}',
+      '${entry.ProcessCode || 0}',
+      '${entry.StatusCode}',
+      '${entry.RejCode || 0}',
+      '${entry.NatureCode || 0}',
+      '${entry.WeightPer}',
+      '${entry.Weight}',
+      '${entry.LabourRate}',
+      '${entry.CiRate || 0}',
+      '${entry.DiRate || 0}',
+      '${entry.Hours}',
+      '${entry.FurnaceTonnage}',
+      '${entry.BreakDownMin}',
+      '${entry.Remark1}',
+      '${entry.Remark2}',
+      '${entry.Remark3}',
+      '${entry.Rate}',
+      '${entry.Amt}',
+      '${entry.TaxableAmt}',
+      '${entry.CgstAmt}',
+      '${entry.SgstAmt}',
+      '${entry.IgstAmt}',
+      '${entry.NetAmt}',
+      '${entry.ComputerID}',
+      '${entry.CompCode}',
+      '${entry.DeptCode}',
+      '${entry.YearCode}',
+      '${entry.USERID}'
+    )`).join(',');
+
+    console.log("Entry Data :", values)
+
+    const query = `
+      DELETE FROM ProcessEntry WHERE EntryNo = '${EntryNo}' AND Flag = '${Flag}';
+
+      INSERT INTO ProcessEntry (
+        Flag,
+        EntryNo,
+        TrDate,
+        SubAccode,
+        EmpCode,
+        PONo,
+        PODate,
+        DCNo,
+        CiHeats,
+        DiHeats,
+        VehicleCode,
+        ItCode,
+        BoxQty,
+        Qty,
+        ShortQty,
+        ProcessCode,
+        StatusCode,
+        RejCode,
+        NatureCode,
+        WeightPer,
+        Weight,
+        LabourRate,
+        CiRate,
+        DiRate,
+        Hours,
+        FurnaceTonnage,
+        BreakDownMin,
+        Remark1,
+        Remark2,
+        Remark3,
+        Rate,
+        Amt,
+        TaxableAmt,
+        CgstAmt,
+        SgstAmt,
+        IgstAmt,
+        NetAmt,
+        ComputerID,
+        CompCode,
+        DeptCode,
+        YearCode,
+        USERID
+      ) VALUES ${values};`;
+
+    sql.query(query, (err, result) => {
+      if (err) {
+        console.log('Error:', err);
+        res.status(500).json({ error: 'Internal server error' });
+      } else {
+        res.json({ message: 'Data saved successfully' });
+      }
+    });
+  } catch (error) {
+    console.log('Error:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+
+
 
 
 //For ProcessentryTemp
@@ -5512,7 +5644,6 @@ app.post('/api/processtemp', (req, res) => {
   });
 });
 
-
 // Update ProcessentryTemp API
 app.put('/api/processtemp/:entryNo/:flag/:uniqueCode', (req, res) => {
   const { entryNo, uniqueCode, flag } = req.params;
@@ -5614,7 +5745,6 @@ app.put('/api/processtemp/:entryNo/:flag/:uniqueCode', (req, res) => {
   });
 });
 
-
 // Delete Entry API
 app.delete('/api/processtemp/:EntryNo/:Flag/:uniqueid', async (req, res) => {
   const { EntryNo, Flag, uniqueid } = req.params;
@@ -5665,7 +5795,6 @@ app.delete('/api/processtemp/:EntryNo/:Flag/:uniqueid', async (req, res) => {
   }
 });
 
-
 app.delete('/api/distinctprocess/:EntryNo/:Flag', async (req, res) => {
   const { EntryNo, Flag } = req.params;
   const UserName = req.headers['username'];
@@ -5713,33 +5842,32 @@ app.delete('/api/distinctprocess/:EntryNo/:Flag', async (req, res) => {
   }
 });
 
-
 //Save Entry in ProcessEntry
 app.post('/api/SaveProcessentries', async (req, res) => {
-  const { flag, DeptCode, YearCode, CompCode, entryNo, operation } = req.body;
-
+  const { flag, DeptCode, YearCode, CompCode, entryNo, operation, UserID } = req.body;
+console.log("Save Entry :- ",{ flag, DeptCode, YearCode, CompCode, entryNo, operation, UserID });
   // Get the latest max entry number for the given flag
   const getMaxEntryNoQuery = `
     SELECT MAX(CAST(EntryNo AS INT)) AS MaxEntryNo
     FROM ProcessEntry
-    WHERE Flag = '${flag}'AND DeptCode = ${DeptCode} AND YearCode = ${YearCode} AND CompCode = ${CompCode}`;
+    WHERE Flag = '${flag}' AND DeptCode = ${DeptCode} AND YearCode = ${YearCode} AND CompCode = ${CompCode}`;
 
   console.log("getMaxEntryNoQuery", getMaxEntryNoQuery);
   const maxEntryNoResult = await sql.query(getMaxEntryNoQuery);
   const maxEntryNo = maxEntryNoResult.recordset[0]?.MaxEntryNo || 0;
   console.log("maxEntryNo", maxEntryNo);
-  console.log("maxEntryNo", maxEntryNo + 1);
+  console.log("maxEntryNo plus one ", maxEntryNo + 1);
 
 
   // SQL query to insert data into TranEntry and delete from TranEntryTempSub
   const query = `
     DELETE PE
-    FROM ProcessEntry AS PE
+    FROM ProcessEntry AS PE 
     WHERE PE.EntryNo = ${operation === 'update' ? entryNo : maxEntryNo + 1} AND PE.Flag = '${flag}' AND PE.DeptCode = '${DeptCode}' AND PE.YearCode = '${YearCode}'  AND PE.CompCode = '${CompCode}';
 
 
     INSERT INTO ProcessEntry (EntryNo, TrDate, Flag, SubAccode, EmpCode, PONo, PODate, DCNo, CiHeats, DiHeats, VehicleCode, DeptCode, ItCode, BoxQty, ShortQty, ProcessCode, RejCode, NatureCode, Weight, WeightPer, LabourRate, Hours, StatusCode, FurnaceTonnage, CHNo, CiRate, DiRate, BreakDownMin, Remark2, Qty, Remark1, Remark3, Rate, Amt, TaxableAmt, CGstAmt, SGstAmt, IGstAmt, NetAmt, YearCode, CompCode, USERID, ComputerID)
-    SELECT ${operation === 'update' ? entryNo : maxEntryNo + 1},  TrDate, Flag, SubAccode, EmpCode, PONo, PODate, DCNo, CiHeats, DiHeats, VehicleCode, DeptCode, ItCode, BoxQty, ShortQty, ProcessCode, RejCode, NatureCode, Weight, WeightPer, LabourRate, Hours, StatusCode, FurnaceTonnage, CHNo, CiRate, DiRate, BreakDownMin, Remark2, Qty, Remark1, Remark3, Rate, Amt, TaxableAmt, CGstAmt, SGstAmt, IGstAmt, NetAmt, YearCode, CompCode, USERID, ComputerID FROM ProcessEntryTemp;
+    SELECT ${operation === 'update' ? entryNo : maxEntryNo + 1},  TrDate, Flag, SubAccode, EmpCode, PONo, PODate, DCNo, CiHeats, DiHeats, VehicleCode, DeptCode, ItCode, BoxQty, ShortQty, ProcessCode, RejCode, NatureCode, Weight, WeightPer, LabourRate, Hours, StatusCode, FurnaceTonnage, CHNo, CiRate, DiRate, BreakDownMin, Remark2, Qty, Remark1, Remark3, Rate, Amt, TaxableAmt, CGstAmt, SGstAmt, IGstAmt, NetAmt, YearCode, CompCode, USERID, ComputerID FROM ProcessEntryTemp where USERID = '${UserID}';
 
     DELETE PET
     FROM ProcessEntryTemp AS PET
@@ -5757,8 +5885,11 @@ app.post('/api/SaveProcessentries', async (req, res) => {
 });
 
 //Delete processEntryTemp when Exit
-app.delete('/api/clearTemp', (req, res) => {
-  const query = `DELETE FROM ProcessEntryTemp`;
+app.delete('/api/clearTemp/:Flag/:UserID', (req, res) => {
+  const { Flag, DeptCode, CompCode, YearCode, UserID } = req.params;
+  
+  const query = `DELETE FROM ProcessEntryTemp WHERE Flag = '${Flag}' AND USERID = '${UserID}'`;
+
   sql.query(query, (err) => {
     if (err) {
       console.log('Error:', err);
@@ -5776,14 +5907,15 @@ app.post('/api/insertDataAndFlag', (req, res) => {
   const DeptCode = req.body.DeptCode;
   const YearCode = req.body.YearCode;
   const CompCode = req.body.CompCode;
+  const UserID = req.body.UserID;
   const query = `
-    DELETE FROM ProcessEntryTemp;
+    DELETE FROM ProcessEntryTemp WHERE USERID = '${UserID}';
 
     
     INSERT INTO ProcessEntryTemp (flag, EntryNo, TrDate, SubAccode, EmpCode, PONo, PODate, DCNo, CiHeats, DiHeats, VehicleCode, DeptCode, ItCode, BoxQty, ShortQty, ProcessCode, RejCode, NatureCode, Weight, WeightPer, LabourRate, Hours, FurnaceTonnage, CHNo, CiRate, DiRate, BreakDownMin, Remark2, Qty, Remark1, Remark3, StatusCode, Rate, Amt, TaxableAmt, CGstAmt, SGstAmt, IGstAmt, NetAmt, YearCode, CompCode, USERID, ComputerID)
     SELECT flag, EntryNo, TrDate, SubAccode, EmpCode, PONo, PODate, DCNo, CiHeats, DiHeats, VehicleCode, DeptCode, ItCode, BoxQty, ShortQty, ProcessCode, RejCode, NatureCode, Weight, WeightPer, LabourRate, Hours, FurnaceTonnage, CHNo, CiRate, DiRate, BreakDownMin, Remark2, Qty, Remark1, Remark3, StatusCode, Rate, Amt, TaxableAmt, CGstAmt, SGstAmt, IGstAmt, NetAmt, YearCode, CompCode, USERID, ComputerID
     FROM ProcessEntry
-    WHERE EntryNo = @entryNo AND Flag = @flag AND DeptCode = @DeptCode  AND YearCode = @YearCode  AND CompCode = @CompCode;
+    WHERE EntryNo = @entryNo AND Flag = @flag AND DeptCode = @DeptCode  AND YearCode = @YearCode  AND CompCode = @CompCode AND USERID = @UserID;
   `;
 
   const request = new sql.Request();
@@ -5792,6 +5924,7 @@ app.post('/api/insertDataAndFlag', (req, res) => {
   request.input('DeptCode', sql.Int, DeptCode);
   request.input('YearCode', sql.Int, YearCode);
   request.input('CompCode', sql.Int, CompCode);
+  request.input('UserID', sql.Int, UserID);
 
   request.query(query, (err, result) => {
     if (err) {
@@ -5805,7 +5938,8 @@ app.post('/api/insertDataAndFlag', (req, res) => {
 
 //Update ProcessEntry
 app.post('/api/SaveDistProcessEntries', async (req, res) => {
-  const { flag, DeptCode, YearCode, CompCode, trDate, SubAccode, PONo, PODate, CIHeats, DIHeats, CIRate, DIRate, VehicleCode, EmpCode, DCNo, ChNo, BreakDownMin, Remark2, NatureCode, FurnaceTonnage, Hours, operation, entryNo, ItCode, Qty, ShortQty, Remark1, Remark3, Boxes, Weight, RejCode, ProcessCode, LabourRate, StatusCode, USERID } = req.body;
+  const { flag, DeptCode, YearCode, CompCode, trDate, SubAccode, PONo, PODate, CIHeats, DIHeats, CIRate, DIRate, VehicleCode, EmpCode, DCNo, ChNo, BreakDownMin, Remark2, NatureCode, FurnaceTonnage, Hours, operation, entryNo, ItCode, Qty, ShortQty, Remark1, Remark3, Boxes, Weight, RejCode, ProcessCode, LabourRate, StatusCode, UserID } = req.body;
+  console.log("Update Process Entry- ",{ flag, DeptCode, YearCode, CompCode, trDate, SubAccode, PONo, PODate, CIHeats, DIHeats, CIRate, DIRate, VehicleCode, EmpCode, DCNo, ChNo, BreakDownMin, Remark2, NatureCode, FurnaceTonnage, Hours, operation, entryNo, ItCode, Qty, ShortQty, Remark1, Remark3, Boxes, Weight, RejCode, ProcessCode, LabourRate, StatusCode, UserID });
   // Get the latest max entry number for the given flag
   const getMaxEntryNoQuery = `
     SELECT MAX(EntryNo) AS MaxEntryNo
@@ -5827,7 +5961,7 @@ app.post('/api/SaveDistProcessEntries', async (req, res) => {
     SELECT
     '${trDate}',Flag, ${SubAccode}, ${EmpCode}, '${PONo}', '${PODate}', '${DCNo}',  '${CIHeats}', '${DIHeats}', '${VehicleCode}',  ItCode, BoxQty, ShortQty, ProcessCode, RejCode, NatureCode, Weight, WeightPer, LabourRate, ${Hours}, ${FurnaceTonnage}, '${StatusCode}', CHNo, ${CIRate}, ${DIRate}, ${BreakDownMin}, '${Remark2}', Qty, Remark1, '${Remark3}', Rate, Amt, TaxableAmt, CGstAmt, SGstAmt, IGstAmt, NetAmt
      ,'${operation === 'update' ? entryNo : maxEntryNo + 1}', DeptCode, YearCode, CompCode, USERID, COMPUTERID
-     FROM ProcessEntryTemp;
+     FROM ProcessEntryTemp WHERE USERID = '${UserID}';
 
     DELETE PET
     FROM ProcessEntryTemp AS PET
@@ -5843,3 +5977,10 @@ app.post('/api/SaveDistProcessEntries', async (req, res) => {
     }
   });
 });
+
+
+
+
+
+
+
