@@ -2609,18 +2609,16 @@ app.delete('/api/states/:stateCode', async (req, res) => {
 });
 
 //subledgermaster
-
 // GET SubLedgerMaster entries
-app.get('/api/subledgerMaster', (req, res) => {
-  const query = 'SELECT * FROM SubLedgerMaster';
-  sql.query(query, (err, result) => {
-    if (err) {
-      console.log('Error:', err);
-      res.status(500).json({ error: 'Internal server error' });
-    } else {
-      res.json(result.recordset);
-    }
-  });
+app.get('/api/subledgerMaster', async (req, res) => {
+  try {
+    const query = 'SELECT * FROM SubLedgerMaster';
+    const result = await sql.query(query);
+    res.json(result.recordset);
+  } catch (err) {
+    console.error('Error:', err);
+    res.status(500).json({ error: 'Internal server error' });
+  }
 });
 
 // Create a new SubLedgerMaster
@@ -4053,6 +4051,7 @@ app.get('/api/RejectionSheet', (req, res) => {
   let query = `
     SELECT 
         Itcode,
+        Sum(OpQty) AS OpQty,
         SUM(ProdQty) AS ProdQty,
         SUM(SentQty) AS SentQty,
         SUM(RecdQty) AS RecdQty,
@@ -4131,11 +4130,11 @@ app.get('/api/RejectionSheet', (req, res) => {
 }); */
 
 
-app.get('/api/StockStatement', (req, res) => {
+app.get('/api/PartyStockStatement', (req, res) => {
   const { subledgerCode, itemCode, startDate, endDate, } = req.query;
-
+  console.log("Stock Statement Param ",{ subledgerCode, itemCode, startDate, endDate, });
   let query = `
-    SELECT Flag, EntryNo, TrDate, subaccode, itcode, ROUND(ABS(SUM(sentqty) + SUM(recdqty)), 2) AS BalQty, 0 AS SentQty, 0 AS RecdQty
+    SELECT subaccode, itcode, ROUND(ABS(SUM(sentqty) + SUM(recdqty)), 2) AS BalQty, 0 AS SentQty, 0 AS RecdQty
     FROM ViewSubContractorsEntries 
     WHERE TRDATE > @StartDate 
   `;
@@ -4149,9 +4148,9 @@ app.get('/api/StockStatement', (req, res) => {
   }
 
   query += `
-    GROUP BY Flag, EntryNo, TrDate, subaccode, ITCODE
+    GROUP BY subaccode, ITCODE
     UNION ALL
-    SELECT Flag, EntryNo, TrDate, subaccode, itcode, 0 AS BalQty, ROUND(ABS(SUM(SENTQTY)), 2) AS SentQty, ROUND(ABS(SUM(RECDQTY)), 2) AS RecdQty
+    SELECT subaccode, itcode, 0 AS BalQty, ROUND(ABS(SUM(SENTQTY)), 2) AS SentQty, ROUND(ABS(SUM(RECDQTY)), 2) AS RecdQty
     FROM ViewSubContractorsEntries 
     WHERE TRDATE > @StartDate AND TRDATE <= @EndDate   
   `;
@@ -4165,7 +4164,7 @@ app.get('/api/StockStatement', (req, res) => {
   }
 
   query += `
-  GROUP BY Flag, EntryNo, TrDate, subaccode, ITCODE;
+  GROUP BY subaccode, ITCODE;
   `;
 
   const request = new sql.Request();
@@ -5252,10 +5251,10 @@ app.post('/api/processentry/:EntryNo/:Flag', (req, res) => {
       ${entry.EmpCode || 0},
       '${entry.PONo}',
       '${entry.PODate}',
-      '${entry.DCNo}',
+      '${entry.DCNo || 0}',
       '${entry.CiHeats}',
       '${entry.DiHeats}',
-      '${entry.VehicleCode}',
+      '${entry.VehicleCode || 0}',
       '${entry.ItCode}',
       '${entry.BoxQty}',
       ${entry.Qty || 0},
@@ -5269,12 +5268,12 @@ app.post('/api/processentry/:EntryNo/:Flag', (req, res) => {
       '${entry.LabourRate}',
       '${entry.CiRate || 0}',
       '${entry.DiRate || 0}',
-      '${entry.Hours}',
-      '${entry.FurnaceTonnage}',
-      '${entry.BreakDownMin}',
+      '${entry.Hours || 0}',
+      '${entry.FurnaceTonnage || 0}',
+      '${entry.BreakDownMin || 0}',
       '${entry.Remark1}',
-      '${entry.Remark2}',
-      '${entry.Remark3}',
+      '${entry.Remark2 || 0}',
+      '${entry.Remark3 || 0}',
       '${entry.Rate}',
       '${entry.Amt}',
       '${entry.TaxableAmt}',
@@ -5295,7 +5294,7 @@ app.post('/api/processentry/:EntryNo/:Flag', (req, res) => {
       DELETE FROM ProcessEntry WHERE EntryNo = '${EntryNo}' AND Flag = '${Flag}';
 
       INSERT INTO ProcessEntry (
-        Flag,
+        Flag,               
         EntryNo,
         TrDate,
         SubAccode,
@@ -5770,7 +5769,7 @@ app.delete('/api/processtemp/:EntryNo/:Flag/:uniqueid', async (req, res) => {
 
         if (AllowEntryDelete === 1) {
           // The user has permission to delete entries
-          const deleteQuery = `DELETE FROM ProcessEntryTemp WHERE EntryNo='${EntryNo}' AND Flag='${Flag}' AND ComputerID='${uniqueid}'`;
+          const deleteQuery = `DELETE FROM ProcessEntry WHERE EntryNo='${EntryNo}' AND Flag='${Flag}' AND ComputerID='${uniqueid}'`;
 
           sql.query(deleteQuery, (deleteErr) => {
             if (deleteErr) {
